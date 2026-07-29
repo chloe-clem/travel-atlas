@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 const base=import.meta.env.BASE_URL;
 ---
 <BaseLayout title="Leiden | Chloe's Travel Atlas">
-<a class="destination-back" href={`${base}?return=atlas#atlas-list`} id="destinationBack">← Back to atlas</a>
+<a class="destination-back" href={`${base}?return=atlas#atlas-list`} id="destinationBack" data-base={base}>← Back to atlas</a>
 
 
 <nav class="nav"><a class="brand" href={base}>Chloe's Travel Atlas</a><div class="navlinks"><a href={base}>Feelings</a><a href="#take">Chloe's Take</a><a href="#ratings">Ratings</a><a href="#map">Map</a><a href="#recommendations">Recommendations</a><a href="#stories">Stories</a></div></nav>
@@ -33,7 +33,7 @@ const base=import.meta.env.BASE_URL;
 <article class="place-card fade" data-tags="food market budget"><img alt="Stroopwafel" src={`${base}photos/leiden/img_6610.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Dutch favorite</span><h3>Fresh stroopwafel</h3></div><b>9.4</b></div><p>A market-day recommendation that can be linked to its map location.</p><div class="tags"><span>Must try</span><span>Market</span><span>Great value</span></div></div></article>
 </div></div></section>
 <section class="section map-section" id="map"><div class="wrap map-layout"><div class="map-copy fade"><div class="eyebrow rust">Every place, on one map</div><h2>See where the memories happened.</h2><p>The active filter remains visible while you move from recommendations to the map. Selecting a new filter also clears any previously opened pin.</p></div><div class="city-map fade" id="cityMap">
-<svg aria-label="Stylized interactive map of Leiden" role="img" viewbox="0 0 900 600"><rect fill="#e9ece4" height="600" rx="34" width="900"></rect><path d="M-20 420 C130 300 190 470 330 360 S560 250 920 330" fill="none" stroke="#7ca8b6" stroke-width="56"></path><path d="M260 -10 C230 130 320 190 270 330 S250 520 300 630" fill="none" stroke="#8fb4bf" stroke-width="28"></path><g fill="none" opacity=".9" stroke="#c8cec5" stroke-width="8"><path d="M70 90 L840 510"></path><path d="M120 520 L790 80"></path><path d="M40 260 L850 210"></path><path d="M420 20 L510 580"></path><path d="M160 40 L710 570"></path></g></svg>
+<svg aria-label="Stylized interactive map of Leiden" role="img" viewBox="0 0 900 600"><rect fill="#e9ece4" height="600" rx="34" width="900"></rect><path d="M-20 420 C130 300 190 470 330 360 S560 250 920 330" fill="none" stroke="#7ca8b6" stroke-width="56"></path><path d="M260 -10 C230 130 320 190 270 330 S250 520 300 630" fill="none" stroke="#8fb4bf" stroke-width="28"></path><g fill="none" opacity=".9" stroke="#c8cec5" stroke-width="8"><path d="M70 90 L840 510"></path><path d="M120 520 L790 80"></path><path d="M40 260 L850 210"></path><path d="M420 20 L510 580"></path><path d="M160 40 L710 570"></path></g></svg>
 <button class="map-pin" data-image={`${base}photos/leiden/img_7271.jpg`} data-text="Landmark and city-viewpoint placeholder." data-title="De Valk Windmill" data-type="sight" style="left:31%;top:37%">1</button>
 <button class="map-pin" data-image={`${base}photos/leiden/img_6610.jpg`} data-text="A market-day favorite and future recommendation card." data-title="Market stroopwafel" data-type="food" style="left:46%;top:55%">2</button>
 <button class="map-pin" data-image={`${base}photos/leiden/img_9715.jpg`} data-text="Exact café name to be confirmed from your context." data-title="Coffee stop" data-type="coffee" style="left:58%;top:32%">3</button>
@@ -52,12 +52,12 @@ const base=import.meta.env.BASE_URL;
 </main>
 
 
-<div class="story-modal" hidden="" id="storyModal"><button aria-label="Close" class="modal-close">×</button><img alt="" src=""/><div><span>Stories left untold</span><h2></h2><p></p></div></div>
+<div class="story-modal" hidden="" id="storyModal"><button aria-label="Close" class="modal-close">×</button><img alt=""/><div><span>Stories left untold</span><h2></h2><p></p></div></div>
 
 
 <footer class="footer"><div>Chloe's Travel Atlas</div><a href={base}>Back to the globe ↑</a></footer>
 
 
-  <script src={`${base}scripts/destination-nav.js`}></script>
-  <script src={`${base}scripts/leiden.js`}></script>
+  <script is:inline src={`${base}scripts/destination-nav.js`}></script>
+  <script is:inline src={`${base}scripts/leiden.js`}></script>
 </BaseLayout>

@@ -1,0 +1,316 @@
+# Travel Atlas
+
+## Mission
+
+Travel Atlas is a long-term portfolio project and travel journal built with Astro.
+
+This is **not** a template website.
+
+The goal is to create one of the highest quality personal travel websites on the web.
+
+Every implementation decision should prioritize:
+
+- elegance
+- maintainability
+- performance
+- accessibility
+- storytelling
+- long-term scalability
+
+The project is expected to grow to dozens of destinations over multiple years.
+
+---
+
+# Team Roles
+
+The project has two primary collaborators.
+
+## ChatGPT
+
+ChatGPT is the project architect.
+
+Responsibilities:
+
+- architecture
+- UX decisions
+- design direction
+- feature planning
+- content strategy
+- code review
+- major technical decisions
+
+Never replace architectural decisions without explicit approval.
+
+---
+
+## Codex
+
+Codex is the implementation engineer.
+
+Responsibilities:
+
+- writing code
+- refactoring
+- debugging
+- creating components
+- running commands
+- implementing requested features
+
+Before making large edits:
+
+1. inspect existing code
+2. understand the architecture
+3. preserve existing behavior
+4. make the smallest safe change
+
+---
+
+# Core Philosophy
+
+Travel Atlas should feel like an experience.
+
+Never build pages that feel like ordinary blogs.
+
+The experience should feel cinematic.
+
+Scrolling should feel intentional.
+
+Animations should feel smooth.
+
+Whitespace is a design element.
+
+---
+
+# Approved Homepage
+
+The approved homepage is based on Version 3.9.
+
+Flow:
+
+Earth
+
+↓
+
+Start with how you want to feel
+
+↓
+
+Feeling collections
+
+↓
+
+Keep scrolling
+
+↓
+
+Complete Atlas
+
+The Earth intro is an emotional introduction.
+
+It is not simply a hero section.
+
+---
+
+# Navigation Rules
+
+Earth can always be intentionally revisited.
+
+Returning from feeling pages should NOT replay Earth.
+
+Destination pages include subtle navigation.
+
+Navigation should feel invisible whenever possible.
+
+---
+
+# Destination Philosophy
+
+Destinations should tell stories.
+
+Avoid generic travel-blog layouts.
+
+Each destination should eventually support:
+
+- hero
+- overview
+- story
+- highlights
+- recommendations
+- practical tips
+- galleries
+- related destinations
+
+Pages should be reusable.
+
+Never duplicate layout code.
+
+---
+
+# Technical Stack
+
+Framework:
+
+Astro
+
+Deployment:
+
+GitHub Pages
+
+Content:
+
+Astro Content Collections
+
+Language:
+
+TypeScript where appropriate
+
+Styling:
+
+Prefer component-scoped CSS or a consistent global system.
+
+Do not introduce additional frameworks unless requested.
+
+---
+
+# Architecture
+
+Preferred structure
+
+src/
+
+components/
+
+layouts/
+
+pages/
+
+content/
+
+styles/
+
+data/
+
+lib/
+
+Each component should have one clear responsibility.
+
+Avoid giant components.
+
+Avoid duplicated markup.
+
+---
+
+# Coding Standards
+
+Write readable code.
+
+Prefer descriptive variable names.
+
+Comment WHY.
+
+Do not comment WHAT.
+
+Avoid clever code.
+
+Optimize for maintainability.
+
+---
+
+# Git Workflow
+
+Never rewrite history.
+
+Never delete large amounts of code.
+
+Never replace working implementations without approval.
+
+Prefer incremental commits.
+
+---
+
+# Before Editing
+
+Always:
+
+1. inspect existing files
+2. explain findings
+3. propose a plan
+4. implement
+5. run checks
+6. summarize changes
+
+---
+
+# Design Standards
+
+Animations should feel premium.
+
+Avoid:
+
+- flashy effects
+- excessive parallax
+- unnecessary motion
+- visual clutter
+
+Prioritize:
+
+- smooth transitions
+- typography
+- spacing
+- photography
+
+---
+
+# Future Features
+
+The site will eventually include:
+
+- 30+ destinations
+- interactive maps
+- search
+- filters
+- photo galleries
+- travel statistics
+- recommendation engine
+- packing guides
+- itineraries
+
+Build reusable systems.
+
+Do not hardcode future content.
+
+---
+
+# Performance
+
+Keep Lighthouse scores high.
+
+Prefer Astro islands.
+
+Lazy-load heavy assets.
+
+Optimize images.
+
+Minimize JavaScript.
+
+---
+
+# Current Priority
+
+Current milestone:
+
+Build the first production-quality version of the site.
+
+Before implementing anything:
+
+Inspect the existing workspace.
+
+Verify the Astro project.
+
+Understand the current architecture.
+
+Then recommend the smallest next step.
+
+Never assume files are missing.
+
+Always verify.

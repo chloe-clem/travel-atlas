@@ -3,5 +3,5 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   output: 'static',
   site: 'https://chloe-clem.github.io',
-  base: '/travel-atlas',
+  base: '/travel-atlas/',
 });

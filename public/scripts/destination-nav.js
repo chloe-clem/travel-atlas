@@ -4,11 +4,12 @@
   const params=new URLSearchParams(location.search);
   const from=params.get('from');
   const feeling=params.get('feeling');
+  const base=back.dataset.base || '/';
   if(from==='collection' && feeling){
-    back.href=`/feelings/${encodeURIComponent(feeling)}/`;
+    back.href=`${base}feelings/${encodeURIComponent(feeling)}/`;
     back.textContent='← Back to collection';
   }else if(from==='atlas'){
-    back.href='/?return=atlas#atlas-list';
+    back.href=`${base}?return=atlas#atlas-list`;
     back.textContent='← Back to complete atlas';
   }else if(document.referrer){
     try{
