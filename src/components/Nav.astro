@@ -1,0 +1,11 @@
+---
+const { dark=false, destination=false } = Astro.props;
+const base=import.meta.env.BASE_URL;
+const home=`${base}`;
+---
+<nav class:list={['nav', dark && 'nav-dark']}>
+  <a class:list={['brand', !destination && 'earth-home-link']} href={destination ? `${home}?return=atlas#atlas-list` : '#top'}>Chloe's Travel Atlas</a>
+  <div class="navlinks">
+    {destination ? (<><a href={`${home}?return=feel#feel`}>Feelings</a><a href={`${home}?return=atlas#atlas-list`}>Atlas</a><a href="#take">Chloe's Take</a></>) : (<><a class="earth-home-link" href="#top">Earth</a><a href="#feel">Explore</a><a href="#atlas-list">Atlas</a><a href="#about">About</a></>)}
+  </div>
+</nav>

@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const base=import.meta.env.BASE_URL;
+---
+<BaseLayout title="Leiden | Chloe's Travel Atlas">
+<a class="destination-back" href={`${base}?return=atlas#atlas-list`} id="destinationBack">← Back to atlas</a>
+
+
+<nav class="nav"><a class="brand" href={base}>Chloe's Travel Atlas</a><div class="navlinks"><a href={base}>Feelings</a><a href="#take">Chloe's Take</a><a href="#ratings">Ratings</a><a href="#map">Map</a><a href="#recommendations">Recommendations</a><a href="#stories">Stories</a></div></nav>
+
+
+<header class="city-hero"><img alt="Sunset reflected in a Leiden canal" src={`${base}photos/leiden/img_0541.jpg`}/><div class="wrap city-head fade"><div class="eyebrow">The Netherlands · Lived here for five months</div><h1>Leiden</h1><p>A smaller, calmer version of Amsterdam, with canals around every corner and a pace that made the city feel easy to live in.</p><div class="city-meta"><span>Walkable</span><span>Bike-friendly</span><span>Student city</span><span>Canal life</span></div></div></header>
+
+
+<section class="wrap snapshot"><div><span>Overall feeling</span><b>9.2 / 10</b></div><div><span>Best for</span><b>Slow city days</b></div><div><span>Market days</span><b>Wednesday + Saturday</b></div><div><span>Would return?</span><b>Absolutely</b></div></section>
+
+
+<main>
+<section class="section wrap take-grid" id="take"><div class="fade"><div class="eyebrow rust">Chloe's take</div><h2>Why Leiden felt like home.</h2><p>I absolutely love Leiden. It is a cute little city with many students and families. I love that it is very walkable but also bike friendly. It reminds me of a mini version of Amsterdam, but more quaint and with less of the stressful, rushed energy.</p><p class="note">This wording is still a working draft. The final version will use your added context and recommendations.</p></div><aside class="pull-quote fade">“A mini version of Amsterdam, but more quaint and less rushed.”</aside></section>
+<section class="section wrap" id="ratings"><div class="eyebrow rust">The destination scorecard</div><h2 class="fade">A place rated by how it feels.</h2><div class="rating-box fade"><div class="rating-head"><div><strong>Leiden</strong><div class="note">Prototype ratings, ready to become editable data.</div></div><div class="score">9.2</div></div><div class="bar-row"><span>Walkability</span><div class="bar"><i style="--w:98%"></i></div><b>9.8</b></div><div class="bar-row"><span>Atmosphere</span><div class="bar"><i style="--w:96%"></i></div><b>9.6</b></div><div class="bar-row"><span>Food</span><div class="bar"><i style="--w:82%"></i></div><b>8.2</b></div><div class="bar-row"><span>Value</span><div class="bar"><i style="--w:88%"></i></div><b>8.8</b></div><div class="bar-row"><span>Things to do</span><div class="bar"><i style="--w:86%"></i></div><b>8.6</b></div><div class="bar-row"><span>Liveability</span><div class="bar"><i style="--w:97%"></i></div><b>9.7</b></div></div></section><section class="recommendation-explorer" id="recommendations">
+<div class="shared-explorer shared-explorer-sticky">
+<div class="wrap shared-explorer-inner">
+<div><div class="eyebrow">Explore Leiden your way</div><h2>One filter, two connected views.</h2></div>
+<div aria-label="Filter Leiden recommendations and map" class="shared-filters">
+<button class="shared-filter active" data-filter="all">All</button><button class="shared-filter" data-filter="food">Food</button><button class="shared-filter" data-filter="coffee">Coffee</button><button class="shared-filter" data-filter="budget">Budget</button><button class="shared-filter" data-filter="quiet">Quiet</button><button class="shared-filter" data-filter="market">Markets</button><button class="shared-filter" data-filter="story">Stories</button><button class="shared-filter" data-filter="sight">Sights</button>
+</div>
+<p aria-live="polite" class="filter-status" id="filterStatus">Showing every recommendation and map location.</p>
+</div>
+</div>
+<section class="section recommendations" id="recommendationCards"><div class="wrap"><div class="eyebrow rust">Recommendations</div><div class="rec-heading"><h2 class="fade">Choose what matters to you.</h2></div><div class="place-grid">
+<article class="place-card fade" data-tags="food budget"><img alt="Falafel salad" src={`${base}photos/leiden/img_7455.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Lunch</span><h3>Falafel salad stop</h3></div><b>8.6</b></div><p>Exact business and context to be added from your notes.</p><div class="tags"><span>Taste 8.7</span><span>Good value</span><span>Would return</span></div></div></article>
+<article class="place-card fade" data-tags="coffee quiet"><img alt="Coffee drinks" src={`${base}photos/leiden/img_9715.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Café</span><h3>Coffee break</h3></div><b>7.8</b></div><p>A reusable café card with setting, taste, value, and personal context.</p><div class="tags"><span>Setting 8.8</span><span>Quiet</span><span>Good atmosphere</span></div></div></article>
+<article class="place-card fade" data-tags="food market budget"><img alt="Stroopwafel" src={`${base}photos/leiden/img_6610.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Dutch favorite</span><h3>Fresh stroopwafel</h3></div><b>9.4</b></div><p>A market-day recommendation that can be linked to its map location.</p><div class="tags"><span>Must try</span><span>Market</span><span>Great value</span></div></div></article>
+</div></div></section>
+<section class="section map-section" id="map"><div class="wrap map-layout"><div class="map-copy fade"><div class="eyebrow rust">Every place, on one map</div><h2>See where the memories happened.</h2><p>The active filter remains visible while you move from recommendations to the map. Selecting a new filter also clears any previously opened pin.</p></div><div class="city-map fade" id="cityMap">
+<svg aria-label="Stylized interactive map of Leiden" role="img" viewbox="0 0 900 600"><rect fill="#e9ece4" height="600" rx="34" width="900"></rect><path d="M-20 420 C130 300 190 470 330 360 S560 250 920 330" fill="none" stroke="#7ca8b6" stroke-width="56"></path><path d="M260 -10 C230 130 320 190 270 330 S250 520 300 630" fill="none" stroke="#8fb4bf" stroke-width="28"></path><g fill="none" opacity=".9" stroke="#c8cec5" stroke-width="8"><path d="M70 90 L840 510"></path><path d="M120 520 L790 80"></path><path d="M40 260 L850 210"></path><path d="M420 20 L510 580"></path><path d="M160 40 L710 570"></path></g></svg>
+<button class="map-pin" data-image={`${base}photos/leiden/img_7271.jpg`} data-text="Landmark and city-viewpoint placeholder." data-title="De Valk Windmill" data-type="sight" style="left:31%;top:37%">1</button>
+<button class="map-pin" data-image={`${base}photos/leiden/img_6610.jpg`} data-text="A market-day favorite and future recommendation card." data-title="Market stroopwafel" data-type="food" style="left:46%;top:55%">2</button>
+<button class="map-pin" data-image={`${base}photos/leiden/img_9715.jpg`} data-text="Exact café name to be confirmed from your context." data-title="Coffee stop" data-type="coffee" style="left:58%;top:32%">3</button>
+<button class="map-pin" data-image={`${base}photos/leiden/img_3412.jpg`} data-text="A photo connected to a story that can open from the map." data-title="Canal memory" data-type="story" style="left:67%;top:61%">4</button>
+<div class="map-card" id="mapCard"><img alt="" src={`${base}photos/leiden/img_7271.jpg`}/><div><span>Selected place</span><h3>De Valk Windmill</h3><p>Click another pin to explore.</p></div></div>
+</div></div></section>
+</section>
+<section class="section wrap" id="stories"><div class="eyebrow rust">Stories left untold</div><div class="stories-heading"><h2 class="fade">The memories beyond the guide.</h2><p class="fade">Select a photograph to see the story, recommendation, or context behind it. Some can remain visual until you decide there is more to say.</p></div><div class="story-gallery fade" id="storyGallery">
+<button data-img={`${base}photos/leiden/img_7289.jpg`} data-story="This space is designed for the personal context only you can add later." data-title="A canal I kept returning to"><img alt="Canal boats" src={`${base}photos/leiden/img_7289.jpg`}/><span>Story available</span></button>
+<button data-img={`${base}photos/leiden/img_0113.jpg`} data-story="Flowers, food, and the rhythm of Leiden's Wednesday and Saturday markets." data-title="Market morning"><img alt="Flowers at a market" src={`${base}photos/leiden/img_0113.jpg`}/><span>Story available</span></button>
+<button data-img={`${base}photos/leiden/img_7463.jpg`} data-story="A small scene that captures what living in a Dutch city felt like." data-title="Everyday bike life"><img alt="Bicycles" src={`${base}photos/leiden/img_7463.jpg`}/><span>Story available</span></button>
+<button data-img={`${base}photos/leiden/img_7295.jpg`} data-story="This photo can stay visual or hold a memory once you add the context." data-title="Quiet corner"><img alt="Garden" src={`${base}photos/leiden/img_7295.jpg`}/><span>Story available</span></button>
+<button data-img={`${base}photos/leiden/img_0541.jpg`} data-story="A full-screen memory that could connect back to the hero image." data-title="Canal at sunset"><img alt="Canal sunset" src={`${base}photos/leiden/img_0541.jpg`}/><span>Story available</span></button>
+<button data-img={`${base}photos/leiden/img_7455.jpg`} data-story="The exact place and why you chose this image can be filled in later." data-title="A meal worth remembering"><img alt="Meal" src={`${base}photos/leiden/img_7455.jpg`}/><span>Story available</span></button>
+</div></section>
+</main>
+
+
+<div class="story-modal" hidden="" id="storyModal"><button aria-label="Close" class="modal-close">×</button><img alt="" src=""/><div><span>Stories left untold</span><h2></h2><p></p></div></div>
+
+
+<footer class="footer"><div>Chloe's Travel Atlas</div><a href={base}>Back to the globe ↑</a></footer>
+
+
+  <script src={`${base}scripts/destination-nav.js`}></script>
+  <script src={`${base}scripts/leiden.js`}></script>
+</BaseLayout>
