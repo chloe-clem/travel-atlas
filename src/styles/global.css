@@ -194,8 +194,8 @@ html.skip-home-intro{scroll-behavior:auto}
 
 /* V3.8 — stable collection return and a longer feelings reveal */
 .return-feel-title{display:none}
-.home-v35 .earth-story{height:245vh}
-@media(max-width:800px){.home-v35 .earth-story{height:220vh}}
+.home-v35 .earth-story{height:185vh}
+@media(max-width:800px){.home-v35 .earth-story{height:175vh}}
 html.skip-home-intro .home-v35 .earth-story{display:none}
 html.skip-home-intro .home-v35 .feel-section{padding-top:150px}
 html.skip-home-intro .return-feel-title{display:block;font:clamp(3.6rem,7.5vw,7.7rem)/.91 Georgia,serif;letter-spacing:-.05em;margin:0 0 72px;text-align:center;color:#f4f6ef}
