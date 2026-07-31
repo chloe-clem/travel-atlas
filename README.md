@@ -1,4 +1,4 @@
-# Chloe's Travel Atlas — V4.1
+# Chloe's Travel Atlas, V4.1
 
 Astro foundation configured for GitHub Pages at:
 

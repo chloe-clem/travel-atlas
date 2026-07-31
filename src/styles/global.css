@@ -41,7 +41,7 @@
 .recommendation-explorer .recommendations{padding-top:88px}.recommendation-explorer .map-section{padding-top:88px}
 @media(max-width:800px){.earth-reset{top:76px;left:16px}.shared-explorer-inner{grid-template-columns:1fr;gap:12px}.shared-explorer-inner .shared-filters{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.shared-filter{white-space:nowrap}.filter-status{text-align:left}.shared-explorer-sticky{top:0}}
 
-/* V3.0 — scroll-led living atlas */
+/* V3.0: scroll-led living atlas */
 .home-v30{background:#06120f}.home-v30 .nav{position:fixed;top:0;left:0;right:0;z-index:80;background:linear-gradient(to bottom,rgba(3,13,11,.82),rgba(3,13,11,.15),transparent);transition:background .35s}.home-v30 .nav.scrolled{background:rgba(8,24,20,.9);backdrop-filter:blur(14px)}
 .earth-story{height:185vh;position:relative;background:linear-gradient(#06120f 0%,#06120f 58%,#e9eee9 100%)}
 .home-v30 .earth-hero{position:sticky;top:0;height:100vh;min-height:680px;overflow:hidden;background:transparent;color:#fff;--story:0;--title-opacity:1;--stat-opacity:0;--globe-shift:0px;--globe-scale:1}
@@ -95,7 +95,7 @@
 .home-v32 .destination-ribbon{background:var(--cream);color:var(--ink);padding-top:110px}.home-v32 .about-dark{background:var(--ink)}
 @media(max-width:800px){.home-v32 .earth-story{height:160vh}.home-v32 #earthGlobe{transform:translate(calc(var(--story)*28vw),calc(var(--story)*-5vh)) scale(calc(1 - var(--story)*.28))}.home-v32 .earth-instructions{right:50%;transform:translateX(50%);bottom:56px;white-space:nowrap}.home-v32 .atlas-curtain-copy h2{font-size:3.7rem}}
 
-/* V3.3 — continuous cinematic dissolve */
+/* V3.3: continuous cinematic dissolve */
 .home-v33{background:#06120f}
 .home-v33 .nav{background:linear-gradient(to bottom,rgba(3,13,11,.9),rgba(3,13,11,.18),transparent)}
 .home-v33 .earth-story{height:190vh;position:relative;background:radial-gradient(circle at 50% 38%,#0d2730 0%,#06131a 40%,#06120f 76%,#0d2822 100%)}
@@ -123,7 +123,7 @@
 @media(max-width:800px){.home-v33 .earth-story{height:170vh}.home-v33 .earth-hero{min-height:640px}.home-v33 .earth-instructions{right:50%;transform:translateX(50%);bottom:56px;white-space:nowrap}.home-v33 .atlas-reveal-copy{padding-top:22vh}.home-v33 .atlas-reveal-copy h2{font-size:3.7rem}}
 @media(prefers-reduced-motion:reduce){.home-v33 #earthGlobe,.home-v33 .earth-copy,.home-v33 .atlas-reveal{transform:none!important;filter:none!important}}
 
-/* V3.4 — emotional collections + complete atlas */
+/* V3.4: emotional collections + complete atlas */
 .home-v34 .earth-story{height:190vh;position:relative;background:radial-gradient(circle at 50% 38%,#0d2730 0%,#06131a 40%,#06120f 76%,#0d2822 100%)}
 .home-v34 .earth-hero{position:sticky;top:0;height:100vh;min-height:680px;overflow:hidden;background:transparent;color:#fff;--story:0;--title-opacity:1;--earth-opacity:1;--reveal-opacity:0;--reveal-y:28px;--earth-blur:0px}
 .home-v34 .earth-hero:after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(circle at 52% 48%,transparent 28%,rgba(4,16,14,.06) 55%,rgba(4,16,14,.54) 100%),linear-gradient(to bottom,transparent 55%,rgba(13,40,34,.16) 76%,rgba(13,40,34,.78) 100%);opacity:calc(.3 + var(--story)*.7)}
@@ -153,7 +153,7 @@
 @media(prefers-reduced-motion:reduce){.home-v34 #earthGlobe,.home-v34 .earth-copy,.home-v34 .atlas-reveal,.collection-card:before,.collection-place:before{transition:none!important;transform:none!important;filter:none!important}}
 
 
-/* V3.5 — centered opening Earth; complete dissolve before the collections title */
+/* V3.5: centered opening Earth; complete dissolve before the collections title */
 .home-v35{background:#06120f}
 .home-v35 .earth-story{height:190vh;position:relative;background:radial-gradient(circle at 50% 38%,#0d2730 0%,#06131a 40%,#06120f 76%,#0d2822 100%)}
 .home-v35 .earth-hero{position:sticky;top:0;height:100vh;min-height:680px;overflow:hidden;background:transparent;color:#fff;--story:0;--title-opacity:1;--earth-opacity:1;--reveal-opacity:0;--reveal-y:28px;--earth-blur:0px}
@@ -192,7 +192,7 @@ html.skip-home-intro{scroll-behavior:auto}
 @media(max-width:800px){.shared-explorer-sticky{top:64px}.destination-back{top:72px}}
 
 
-/* V3.8 — stable collection return and a longer feelings reveal */
+/* V3.8: stable collection return and a longer feelings reveal */
 .return-feel-title{display:none}
 .home-v35 .earth-story{height:205vh}
 @media(max-width:800px){.home-v35 .earth-story{height:190vh}}
@@ -203,7 +203,7 @@ html.skip-home-intro .home-v35 .feel-section:before{display:none}
 @media(max-width:800px){html.skip-home-intro .return-feel-title{font-size:3.7rem;margin-bottom:52px}html.skip-home-intro .home-v35 .feel-section{padding-top:118px}}
 
 
-/* V3.9 — explicit route back to the Earth introduction */
+/* V3.9: explicit route back to the Earth introduction */
 .navlinks .earth-home-link{position:relative}
 .navlinks .earth-home-link:after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .2s ease}
 .navlinks .earth-home-link:hover:after,.navlinks .earth-home-link:focus-visible:after{transform:scaleX(1)}
@@ -212,7 +212,7 @@ html.skip-home-intro .home-v35 .feel-section:before{display:none}
 .text-hero.no-photo,.collection-place.no-photo{background:radial-gradient(circle at 70% 30%,rgba(91,124,107,.35),transparent 38%),linear-gradient(135deg,#17211f,#070b0b)}
 .photo-needed{padding-top:0}.photo-needed p{max-width:48rem}.collection-place.no-photo:before{display:none}
 
-/* V4.0 — continuous transition into the feeling collections */
+/* V4.0: continuous transition into the feeling collections */
 .home-v35 .atlas-flow{margin-top:-1px;background:#0d2822}
 .home-v35 .feelings-section{position:relative;padding:clamp(110px,16vh,170px) 0 130px;background:linear-gradient(180deg,#0d2822 0%,#123129 24%,#173a31 72%,#1b4137 100%);color:#f4f6ef}
 .home-v35 .feelings-section:before{content:"";position:absolute;left:0;right:0;top:-180px;height:180px;background:linear-gradient(to bottom,transparent,#0d2822);pointer-events:none}
@@ -226,7 +226,7 @@ html.skip-home-intro .home-v35 .feelings-section{padding-top:150px}
 html.skip-home-intro .home-v35 .feelings-section:before{display:none}
 @media(max-width:800px){.home-v35 .feelings-section{padding:100px 0 110px}html:not(.skip-home-intro) .home-v35 .feelings-section{padding-top:54px}.feelings-heading{min-height:130px;margin-bottom:56px}.feelings-heading h2{font-size:3.25rem}html.skip-home-intro .home-v35 .feelings-section{padding-top:118px}}
 
-/* V4.1 — softer green collection-page dissolve */
+/* V4.1: softer green collection-page dissolve */
 .collection-page{background:#21483e;color:#f5f6f1}
 .collection-hero{color:#fff}
 .collection-hero:after{background:linear-gradient(to bottom,rgba(5,16,14,.02) 10%,rgba(11,33,28,.12) 50%,rgba(25,60,50,.28) 68%,rgba(33,72,62,.72) 86%,#21483e 100%)}
