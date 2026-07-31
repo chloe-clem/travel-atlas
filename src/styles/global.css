@@ -36,8 +36,8 @@
 .home-v28 #earthGlobe{background:radial-gradient(circle at 50% 45%,#0c2732,#02080e 72%)}
 .recommendation-explorer{position:relative;background:var(--paper)}
 .shared-explorer-sticky{position:sticky;top:0;z-index:45;padding:18px 0;background:rgba(19,48,41,.95);backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(10,28,23,.16)}
-.shared-explorer-inner{display:grid;grid-template-columns:minmax(230px,.6fr) 1.4fr;gap:28px;align-items:center}
-.shared-explorer-inner h2{font:1.55rem/1.1 Georgia,serif;margin:4px 0 0}.shared-explorer-inner .eyebrow{font-size:.6rem}.shared-explorer-inner .shared-filters{justify-content:flex-end}.filter-status{grid-column:1/-1;margin:0;color:#b9cbc3;font-size:.76rem;text-align:right}
+.shared-explorer-inner{display:grid;grid-template-columns:minmax(300px,.75fr) 1.25fr;gap:28px;align-items:center}
+.shared-explorer-heading h2{font:clamp(2rem,3vw,3.15rem)/.95 Georgia,serif;margin:0;letter-spacing:-.025em}.shared-explorer-heading p{margin:10px 0 0;max-width:410px;color:#b9cbc3;font-size:.84rem;line-height:1.45}.shared-explorer-inner .shared-filters{justify-content:flex-end}.filter-status{grid-column:1/-1;margin:0;color:#b9cbc3;font-size:.76rem;text-align:right}
 .recommendation-explorer .recommendations{padding-top:88px}.recommendation-explorer .map-section{padding-top:88px}
 @media(max-width:800px){.earth-reset{top:76px;left:16px}.shared-explorer-inner{grid-template-columns:1fr;gap:12px}.shared-explorer-inner .shared-filters{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.shared-filter{white-space:nowrap}.filter-status{text-align:left}.shared-explorer-sticky{top:0}}
 

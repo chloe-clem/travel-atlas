@@ -1,0 +1,29 @@
+---
+interface Props {
+  destinationName: string;
+}
+
+const { destinationName } = Astro.props;
+---
+
+<div class="shared-explorer shared-explorer-sticky">
+  <div class="wrap shared-explorer-inner">
+    <div class="shared-explorer-heading">
+      <h2>Explore {destinationName} Your Way</h2>
+      <p>Choose an interest to see recommendations and map locations.</p>
+    </div>
+    <div aria-label={`Filter ${destinationName} recommendations and map`} class="shared-filters">
+      <button class="shared-filter active" data-filter="all">All</button>
+      <button class="shared-filter" data-filter="food">Food</button>
+      <button class="shared-filter" data-filter="cafes">Cafés</button>
+      <button class="shared-filter" data-filter="activities">Activities</button>
+      <button class="shared-filter" data-filter="nature">Nature</button>
+      <button class="shared-filter" data-filter="museums">Museums</button>
+      <button class="shared-filter" data-filter="shopping">Shopping</button>
+      <button class="shared-filter" data-filter="day-trips">Day Trips</button>
+      <button class="shared-filter" data-filter="nightlife">Nightlife</button>
+      <button class="shared-filter" data-filter="hidden-gems">Hidden Gems</button>
+    </div>
+    <p aria-live="polite" class="filter-status" id="filterStatus">Showing every recommendation and map location.</p>
+  </div>
+</div>
