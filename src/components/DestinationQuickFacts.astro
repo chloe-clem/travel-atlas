@@ -1,0 +1,27 @@
+---
+import type { Destination } from '../data/destinations';
+
+interface Props {
+  destination: Destination;
+}
+
+const { destination } = Astro.props;
+const quickFacts = [
+  { label: 'Budget', value: destination.budget },
+  { label: 'Ideal Length', value: destination.idealLength },
+  { label: 'Best Time', value: destination.bestTime },
+  { label: 'Don\'t Miss', value: destination.dontMiss },
+];
+const hasQuickFacts = quickFacts.some(({ value }) => value);
+---
+
+{hasQuickFacts && (
+  <section class="wrap snapshot" aria-label={`${destination.name} trip-planning summary`}>
+    {quickFacts.map(({ label, value }) => (
+      <div>
+        <span>{label}</span>
+        <b class:list={{ 'snapshot-value-missing': !value }}>{value || 'Coming soon'}</b>
+      </div>
+    ))}
+  </section>
+)}
