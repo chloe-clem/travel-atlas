@@ -1,10 +1,16 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import DestinationQuickFacts from '../../components/DestinationQuickFacts.astro';
+import EditorialTake from '../../components/EditorialTake.astro';
 import RecommendationExplorerHeader from '../../components/RecommendationExplorerHeader.astro';
 import { destinations } from '../../data/destinations';
 const base=import.meta.env.BASE_URL;
 const destination=destinations.find(({slug})=>slug==='leiden')!;
+const takeParagraphs=[
+  'I spent five months living in Leiden while studying abroad, and it became one of my favorite places I’ve ever lived.',
+  'If you’re looking for world-famous museums and nonstop energy, Amsterdam is hard to beat. But if your favorite travel memories come from wandering quiet streets, becoming a regular at a neighborhood café, biking along peaceful canals, and feeling like you’ve settled into everyday life somewhere new, I’d choose Leiden every time.',
+  'One of the things I loved most was that it still felt unmistakably Dutch. You hear Dutch being spoken all around you, watch student associations fill the streets, and get a glimpse of everyday life in a way that’s harder to find in larger tourist cities. It’s the kind of place that quietly grows on you until, before you know it, you’re already planning your next visit.',
+];
 ---
 <BaseLayout title={`${destination.name} | Chloe's Travel Atlas`}>
 <a class="destination-back" href={`${base}?return=atlas#atlas-list`} id="destinationBack" data-base={base}>← Back to atlas</a>
@@ -20,7 +26,7 @@ const destination=destinations.find(({slug})=>slug==='leiden')!;
 
 
 <main>
-<section class="section wrap take-grid" id="take"><div class="fade"><div class="eyebrow rust">Chloe's take</div><h2>Why I’d Choose Leiden Over Amsterdam</h2><p>I spent five months living in Leiden while studying abroad, and it became one of my favorite places I’ve ever lived.</p><p>If you’re looking for world-famous museums and nonstop energy, Amsterdam is hard to beat. But if your favorite travel memories come from wandering quiet streets, becoming a regular at a neighborhood café, biking along peaceful canals, and feeling like you’ve settled into everyday life somewhere new, I’d choose Leiden every time.</p><p>One of the things I loved most was that it still felt unmistakably Dutch. You hear Dutch being spoken all around you, watch student associations fill the streets, and get a glimpse of everyday life in a way that’s harder to find in larger tourist cities. It’s the kind of place that quietly grows on you until, before you know it, you’re already planning your next visit.</p></div><aside class="pull-quote fade">“Everything I loved about Amsterdam, without feeling like a tourist.”</aside></section>
+<EditorialTake label="Chloe's take" heading="Why I’d Choose Leiden Over Amsterdam" quote="“Everything I loved about Amsterdam, without feeling like a tourist.”" paragraphs={takeParagraphs} imageSrc={`${base}photos/leiden/img_3412.jpg`} imageAlt="Canal, bicycles, flowers, and historic buildings viewed from a green bridge in Leiden." />
 <section class="section wrap" id="ratings"><div class="eyebrow rust">The destination scorecard</div><h2 class="fade">A place rated by how it feels.</h2><div class="rating-box fade"><div class="rating-head"><div><strong>Leiden</strong><div class="note">Prototype ratings, ready to become editable data.</div></div><div class="score">9.2</div></div><div class="bar-row"><span>Walkability</span><div class="bar"><i style="--w:98%"></i></div><b>9.8</b></div><div class="bar-row"><span>Atmosphere</span><div class="bar"><i style="--w:96%"></i></div><b>9.6</b></div><div class="bar-row"><span>Food</span><div class="bar"><i style="--w:82%"></i></div><b>8.2</b></div><div class="bar-row"><span>Value</span><div class="bar"><i style="--w:88%"></i></div><b>8.8</b></div><div class="bar-row"><span>Things to do</span><div class="bar"><i style="--w:86%"></i></div><b>8.6</b></div><div class="bar-row"><span>Liveability</span><div class="bar"><i style="--w:97%"></i></div><b>9.7</b></div></div></section><section class="recommendation-explorer" id="recommendations">
 <RecommendationExplorerHeader destinationName={destination.name} />
 <section class="section recommendations" id="recommendationCards"><div class="wrap"><div class="eyebrow rust">Recommendations</div><div class="rec-heading"><h2 class="fade">Choose what matters to you.</h2></div><div class="place-grid">
