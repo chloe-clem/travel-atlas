@@ -4,6 +4,8 @@ import EditorialTake from '../../components/EditorialTake.astro';
 import RecommendationExplorerHeader from '../../components/RecommendationExplorerHeader.astro';
 import { destinations } from '../../data/destinations';
 const base=import.meta.env.BASE_URL;
+const mapboxAccessToken=import.meta.env.PUBLIC_MAPBOX_ACCESS_TOKEN||'';
+const mapboxStyle=import.meta.env.PUBLIC_MAPBOX_STYLE_URL||'mapbox://styles/mapbox/light-v11';
 const destination=destinations.find(({slug})=>slug==='leiden')!;
 const takeParagraphs=[
   'I spent five months living in Leiden while studying abroad, and it became one of my favorite places I’ve ever lived.',
@@ -26,17 +28,14 @@ const takeParagraphs=[
 <section class="recommendation-explorer" id="recommendations">
 <RecommendationExplorerHeader destinationName={destination.name} />
 <section class="section recommendations" id="recommendationCards"><div class="wrap"><div class="eyebrow rust">Recommendations</div><div class="rec-heading"><h2 class="fade">Choose what matters to you.</h2></div><div class="place-grid">
-<article class="place-card fade" data-tags="food"><img alt="Falafel salad" src={`${base}photos/leiden/img_7455.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Lunch</span><h3>Falafel salad stop</h3></div><b>8.6</b></div><p>Exact business and context to be added from your notes.</p><div class="tags"><span>Taste 8.7</span><span>Good value</span></div></div></article>
-<article class="place-card fade" data-tags="cafes"><img alt="Coffee drinks" src={`${base}photos/leiden/img_9715.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Café</span><h3>Coffee break</h3></div><b>7.8</b></div><p>A reusable café card with setting, taste, value, and personal context.</p><div class="tags"><span>Setting 8.8</span><span>Quiet</span><span>Good atmosphere</span></div></div></article>
-<article class="place-card fade" data-tags="food shopping"><img alt="Stroopwafel" src={`${base}photos/leiden/img_6610.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Dutch favorite</span><h3>Fresh stroopwafel</h3></div><b>9.4</b></div><p>A market-day recommendation that can be linked to its map location.</p><div class="tags"><span>Must try</span><span>Market</span><span>Great value</span></div></div></article>
+<article aria-label="Select Falafel salad stop on the map" class="place-card fade" data-lat="52.1607" data-lng="4.4902" data-place-id="falafel-salad" data-tags="food" role="button" tabindex="0"><img alt="Falafel salad" src={`${base}photos/leiden/img_7455.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Lunch</span><h3>Falafel salad stop</h3></div><b>8.6</b></div><p>Exact business and context to be added from your notes.</p><div class="tags"><span>Taste 8.7</span><span>Good value</span></div></div></article>
+<article aria-label="Select Coffee break on the map" class="place-card fade" data-lat="52.1593" data-lng="4.4928" data-place-id="coffee-break" data-tags="cafes" role="button" tabindex="0"><img alt="Coffee drinks" src={`${base}photos/leiden/img_9715.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Café</span><h3>Coffee break</h3></div><b>7.8</b></div><p>A reusable café card with setting, taste, value, and personal context.</p><div class="tags"><span>Setting 8.8</span><span>Quiet</span><span>Good atmosphere</span></div></div></article>
+<article aria-label="Select Fresh stroopwafel on the map" class="place-card fade" data-lat="52.1588" data-lng="4.4889" data-place-id="fresh-stroopwafel" data-tags="food shopping" role="button" tabindex="0"><img alt="Stroopwafel" src={`${base}photos/leiden/img_6610.jpg`}/><div class="place-copy"><div class="place-top"><div><span>Dutch favorite</span><h3>Fresh stroopwafel</h3></div><b>9.4</b></div><p>A market-day recommendation that can be linked to its map location.</p><div class="tags"><span>Must try</span><span>Market</span><span>Great value</span></div></div></article>
 </div></div></section>
-<section class="section map-section" id="map"><div class="wrap map-layout"><div class="map-copy fade"><div class="eyebrow rust">Every place, on one map</div><h2>See where the memories happened.</h2><p>The active filter remains visible while you move from recommendations to the map. Selecting a new filter also clears any previously opened pin.</p></div><div class="city-map fade" id="cityMap">
-<svg aria-label="Stylized interactive map of Leiden" role="img" viewBox="0 0 900 600"><rect fill="#e9ece4" height="600" rx="34" width="900"></rect><path d="M-20 420 C130 300 190 470 330 360 S560 250 920 330" fill="none" stroke="#7ca8b6" stroke-width="56"></path><path d="M260 -10 C230 130 320 190 270 330 S250 520 300 630" fill="none" stroke="#8fb4bf" stroke-width="28"></path><g fill="none" opacity=".9" stroke="#c8cec5" stroke-width="8"><path d="M70 90 L840 510"></path><path d="M120 520 L790 80"></path><path d="M40 260 L850 210"></path><path d="M420 20 L510 580"></path><path d="M160 40 L710 570"></path></g></svg>
-<button class="map-pin" data-image={`${base}photos/leiden/img_7271.jpg`} data-tags="museums hidden-gems" data-text="Landmark and city-viewpoint placeholder." data-title="De Valk Windmill" style="left:31%;top:37%">1</button>
-<button class="map-pin" data-image={`${base}photos/leiden/img_6610.jpg`} data-tags="food shopping" data-text="A market-day favorite and future recommendation card." data-title="Market stroopwafel" style="left:46%;top:55%">2</button>
-<button class="map-pin" data-image={`${base}photos/leiden/img_9715.jpg`} data-tags="cafes" data-text="Exact café name to be confirmed from your context." data-title="Coffee stop" style="left:58%;top:32%">3</button>
-<button class="map-pin" data-image={`${base}photos/leiden/img_3412.jpg`} data-tags="hidden-gems" data-text="A photo connected to a story that can open from the map." data-title="Canal memory" style="left:67%;top:61%">4</button>
-<div class="map-card" id="mapCard"><img alt="" src={`${base}photos/leiden/img_7271.jpg`}/><div><span>Selected place</span><h3>De Valk Windmill</h3><p>Click another pin to explore.</p></div></div>
+<section class="section map-section" id="map"><div class="wrap map-layout"><div class="map-copy fade"><div class="eyebrow rust">Every place, on one map</div><h2>See where the memories happened.</h2><p>Every recommendation is pinned on the map, so you can see how the city fits together. Explore cafés, museums, hidden gems, and favorite spots in context—not just as a list.</p></div><div aria-label="Interactive map of Leiden recommendations" class="city-map fade" data-mapbox-style={mapboxStyle} data-mapbox-token={mapboxAccessToken} id="cityMap">
+<div class="map-canvas" id="mapCanvas"></div>
+<div class="map-setup" id="mapSetup" hidden><div class="eyebrow rust">Map setup needed</div><h3>Connect Mapbox to explore Leiden.</h3><p>Add a public Mapbox token to <code>PUBLIC_MAPBOX_ACCESS_TOKEN</code>.</p></div>
+<div class="map-card is-cleared" id="mapCard"><img alt=""/><div><span>Selected place</span><h3></h3><p></p><button type="button">View recommendation</button></div></div>
 </div></div></section>
 </section>
 <section class="section wrap" id="stories"><div class="eyebrow rust">Stories left untold</div><div class="stories-heading"><h2 class="fade">The memories beyond the guide.</h2><p class="fade">Select a photograph to see the story, recommendation, or context behind it. Some can remain visual until you decide there is more to say.</p></div><div class="story-gallery fade" id="storyGallery">
@@ -57,5 +56,5 @@ const takeParagraphs=[
 
 
   <script is:inline src={`${base}scripts/destination-nav.js`}></script>
-  <script is:inline src={`${base}scripts/leiden.js`}></script>
+  <script src="../../scripts/leiden.js"></script>
 </BaseLayout>
