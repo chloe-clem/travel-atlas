@@ -22,7 +22,7 @@ export interface Destination {
 
 export const destinations: Destination[] = [
   {name:'Leiden',slug:'leiden',country:'Netherlands',continent:'Europe',latitude:52.1601,longitude:4.4970,note:'A quaint, walkable student city that felt like a calmer Amsterdam.',status:'documented',feelings:['immersed','relaxed','home','inspired'],featuredImage:'photos/leiden/img_0541.jpg',visitLabel:'Study abroad',characteristics:['Walkable','Bike-friendly','Student City','Historic Canals'],budget:'$$',idealLength:'3–4 Days',bestTime:'Spring',dontMiss:'Wednesday & Saturday Markets',story:[
-    'I absolutely love Leiden. It is a cute little city with many students and families. I love that it is very walkable but also bike friendly. It reminds me of a mini version of Amsterdam, but more quaint and less of the stressful, rushed energy.',
+    'I spent five months living in Leiden while studying abroad, and it became one of my favorite places I’ve ever lived.',
     'Beautiful canals are everywhere you turn. People park their boats on the canals and ride them around on sunny days to relax with their families.',
     'The Wednesday and Saturday market brings fresh meat, cheese, bread, stroopwafels, flowers, and plenty of reasons to linger in the center of town.'
   ]},
