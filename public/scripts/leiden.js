@@ -13,13 +13,14 @@ function clearMapSelection(){
   mapCard.classList.add('is-cleared');
 }
 function applyFilter(filter){
-  mapPins.forEach(pin=>pin.classList.toggle('hidden',filter!=='all' && pin.dataset.type!==filter));
+  mapPins.forEach(pin=>{const tags=(pin.dataset.tags||'').split(' ');pin.classList.toggle('hidden',filter!=='all' && !tags.includes(filter));});
   cards.forEach(card=>{const tags=(card.dataset.tags||'').split(' ');card.style.display=filter==='all'||tags.includes(filter)?'':'none';});
   sharedFilters.forEach(b=>b.classList.toggle('active',b.dataset.filter===filter));
   clearMapSelection();
   const visibleCards=cards.filter(c=>c.style.display!=='none').length;
   const visiblePins=mapPins.filter(p=>!p.classList.contains('hidden')).length;
-  if(filterStatus) filterStatus.textContent=filter==='all'?'Showing every recommendation and map location.':`Showing ${visibleCards} recommendation${visibleCards===1?'':'s'} and ${visiblePins} map location${visiblePins===1?'':'s'} for ${filter}.`;
+  const activeLabel=sharedFilters.find(button=>button.dataset.filter===filter)?.textContent||filter;
+  if(filterStatus) filterStatus.textContent=filter==='all'?'Showing every recommendation and map location.':`Showing ${visibleCards} recommendation${visibleCards===1?'':'s'} and ${visiblePins} map location${visiblePins===1?'':'s'} for ${activeLabel}.`;
 }
 sharedFilters.forEach(btn=>btn.addEventListener('click',()=>applyFilter(btn.dataset.filter)));
 mapPins.forEach(pin=>pin.addEventListener('click',()=>{
