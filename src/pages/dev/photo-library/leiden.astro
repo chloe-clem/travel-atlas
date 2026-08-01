@@ -4,18 +4,18 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getDestinationExperience } from '../../../data/destinationExperiences';
+import { getRecommendationsByDestination } from '../../../data/recommendations';
 
 const base = import.meta.env.BASE_URL;
-const photoDirectory = path.join(process.cwd(), 'public', 'photos', 'leiden');
+const destination = 'leiden';
+const photoDirectory = path.join(process.cwd(), 'public', 'photos', destination);
 const supportedExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
 const heicExtensions = new Set(['.heic', '.heif']);
 const filenames = await readdir(photoDirectory);
-const supportedFilenames = filenames
-  .filter(filename => supportedExtensions.has(path.extname(filename).toLowerCase()))
-  .sort((first, second) => first.localeCompare(second, 'en', { numeric: true, sensitivity: 'base' }));
-const heicFiles = filenames
-  .filter(filename => heicExtensions.has(path.extname(filename).toLowerCase()))
-  .sort((first, second) => first.localeCompare(second, 'en', { numeric: true, sensitivity: 'base' }));
+const alphabetical = (first: string, second: string) => first.localeCompare(second, 'en', { numeric: true, sensitivity: 'base' });
+const supportedFilenames = filenames.filter(filename => supportedExtensions.has(path.extname(filename).toLowerCase())).sort(alphabetical);
+const heicFiles = filenames.filter(filename => heicExtensions.has(path.extname(filename).toLowerCase())).sort(alphabetical);
 
 interface CatalogPhoto {
   filename: string;
@@ -25,12 +25,18 @@ interface CatalogPhoto {
   height: number;
   orientation: 'portrait' | 'landscape' | 'square';
   bytes: number;
+  fileSize: string;
   hash: string;
 }
 
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+};
+
 const photos: CatalogPhoto[] = [];
 const unreadableFiles: string[] = [];
-
 for (const filename of supportedFilenames) {
   const absolutePath = path.join(photoDirectory, filename);
   try {
@@ -40,19 +46,16 @@ for (const filename of supportedFilenames) {
       sharp(absolutePath).metadata(),
     ]);
     if (!metadata.width || !metadata.height) throw new Error('Missing image dimensions');
-
-    const orientation = metadata.width === metadata.height
-      ? 'square'
-      : metadata.width > metadata.height ? 'landscape' : 'portrait';
-
+    const orientation = metadata.width === metadata.height ? 'square' : metadata.width > metadata.height ? 'landscape' : 'portrait';
     photos.push({
       filename,
-      publicPath: `photos/leiden/${filename}`,
-      imageUrl: `${base}photos/leiden/${encodeURIComponent(filename)}`,
+      publicPath: `photos/${destination}/${filename}`,
+      imageUrl: `${base}photos/${destination}/${encodeURIComponent(filename)}`,
       width: metadata.width,
       height: metadata.height,
       orientation,
       bytes: fileStats.size,
+      fileSize: formatFileSize(fileStats.size),
       hash: createHash('sha256').update(fileBuffer).digest('hex'),
     });
   } catch {
@@ -63,59 +66,89 @@ for (const filename of supportedFilenames) {
 const filenamesByHash = new Map<string, string[]>();
 photos.forEach(photo => filenamesByHash.set(photo.hash, [...(filenamesByHash.get(photo.hash) ?? []), photo.filename]));
 const duplicateGroups = [...filenamesByHash.values()].filter(group => group.length > 1);
-
-const formatFileSize = (bytes: number) => {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-};
-
-const reviewRoles = [
-  'Destination hero candidate',
-  'Feeling image candidate',
-  'Chloe’s Take candidate',
-  'Recommendation candidate',
-  'Story-only',
-  'Do not use',
+const recommendations = getRecommendationsByDestination(destination).map(({ id, name }) => ({ id, name }));
+const feelingOptions = [
+  { id: 'wild', name: 'Wild' },
+  { id: 'immersed', name: 'Immersed' },
+  { id: 'inspired', name: 'Inspired' },
+  { id: 'energized', name: 'Energized' },
+  { id: 'relaxed', name: 'Relaxed' },
 ];
+const experience = getDestinationExperience(destination);
+const storyOptions = experience.stories.items.map((story, index) => ({
+  id: `story-${index + 1}`,
+  name: story.title,
+}));
+const existingAssignments = [
+  { src: experience.hero.image, role: 'destination-hero', relatedId: destination, priority: '', alt: experience.hero.imageAlt, notes: 'Imported from the current Leiden destination hero.' },
+  { src: experience.editorialTake.image, role: 'chloes-take', relatedId: destination, priority: '', alt: experience.editorialTake.imageAlt, notes: 'Imported from the current Leiden Chloe’s Take section.' },
+  ...experience.stories.items.map((story, index) => ({
+    src: story.image,
+    role: 'story',
+    relatedId: `story-${index + 1}`,
+    priority: 'primary',
+    alt: story.imageAlt,
+    notes: `Imported from the current story: ${story.title}`,
+  })),
+];
+const clientData = { destination, photos, recommendations, feelings: feelingOptions, stories: storyOptions, existingAssignments };
 ---
 
-<BaseLayout title="Leiden Photo Library | Development Tool">
+<BaseLayout title="Leiden Photo Assignment Library | Development Tool">
   <main class="photo-library">
     <header class="photo-library-header">
       <div class="eyebrow rust">Development tool</div>
-      <h1>Leiden Photo Library</h1>
-      <p>Review source photography and note filenames for manual assignments. Choices on this page are not saved.</p>
-      <dl class="library-summary">
-        <div><dt>Supported</dt><dd>{supportedFilenames.length}</dd></div>
-        <div><dt>Displayed</dt><dd>{photos.length}</dd></div>
-        <div><dt>Unreadable</dt><dd>{unreadableFiles.length}</dd></div>
-        <div><dt>HEIC / HEIF</dt><dd>{heicFiles.length}</dd></div>
-        <div><dt>Duplicate groups</dt><dd>{duplicateGroups.length}</dd></div>
-      </dl>
+      <h1>Leiden Photo Assignment Library</h1>
+      <p>Review source photography, save draft assignments in this browser, and export validated JSON for a later content update.</p>
+      <p class="sharp-note"><strong>Image safety:</strong> Sharp reads dimensions and orientation at build time only. It never edits, compresses, resizes, renames, or duplicates source photos.</p>
     </header>
 
+    <section class="assignment-summary" aria-labelledby="summaryHeading">
+      <div class="summary-heading">
+        <div><div class="eyebrow rust">Draft status</div><h2 id="summaryHeading">Assignment overview</h2></div>
+        <span id="exportState" class="export-state">No export yet</span>
+      </div>
+      <dl class="summary-grid">
+        <div><dt>Total photos</dt><dd data-summary="total">{photos.length}</dd></div>
+        <div><dt>Assigned</dt><dd data-summary="assigned">0</dd></div>
+        <div><dt>Unassigned</dt><dd data-summary="unassigned">{photos.length}</dd></div>
+        <div><dt>Do not use</dt><dd data-summary="do-not-use">0</dd></div>
+        <div><dt>Destination hero</dt><dd data-summary="hero">Missing</dd></div>
+        <div><dt>Chloe’s Take</dt><dd data-summary="take">Missing</dd></div>
+        <div><dt>Feeling images</dt><dd data-summary="feelings">0</dd></div>
+        <div><dt>Recommendation primaries</dt><dd data-summary="recommendation-primary">0</dd></div>
+        <div><dt>Recommendations missing</dt><dd data-summary="recommendation-missing">{recommendations.length}</dd></div>
+        <div><dt>Story images</dt><dd data-summary="stories">0</dd></div>
+        <div class="validation-summary"><dt>Validation errors</dt><dd data-summary="errors">0</dd></div>
+      </dl>
+      <div class="summary-actions">
+        <button type="button" id="importExisting">Import existing assignments into draft</button>
+        <button type="button" id="exportJson" class="primary-action">Export JSON</button>
+        <label class="file-action">Import JSON<input id="importJson" type="file" accept="application/json,.json" /></label>
+        <button type="button" id="clearDraft" class="danger-action">Clear draft</button>
+      </div>
+      <p id="actionMessage" class="action-message" aria-live="polite"></p>
+      <div id="validationErrors" class="validation-errors" role="alert" hidden></div>
+    </section>
+
+    <details class="existing-assignments">
+      <summary>Review {existingAssignments.length} existing public assignments</summary>
+      <p>These are read-only until you use the import button. A photo currently reused in more than one role must be resolved before export.</p>
+      <ul>
+        {existingAssignments.map(assignment => (
+          <li><code>{assignment.src}</code><span>{assignment.role === 'destination-hero' ? 'Destination Hero' : assignment.role === 'chloes-take' ? 'Chloe’s Take' : `Story Image · ${storyOptions.find(story => story.id === assignment.relatedId)?.name}`}</span></li>
+        ))}
+      </ul>
+    </details>
+
     <section aria-label="Photo library controls" class="library-controls">
-      <label>
-        Search by filename
-        <input id="photoSearch" type="search" placeholder="Try IMG_3412" />
-      </label>
-      <label>
-        Orientation
-        <select id="orientationFilter">
-          <option value="all">All orientations</option>
-          <option value="landscape">Landscape</option>
-          <option value="portrait">Portrait</option>
-          <option value="square">Square</option>
-        </select>
-      </label>
-      <label>
-        Sort
-        <select id="photoSort">
-          <option value="ascending">Filename A–Z</option>
-          <option value="descending">Newest filename / Z–A</option>
-        </select>
-      </label>
+      <label>Search by filename<input id="photoSearch" type="search" placeholder="Try IMG_3412" /></label>
+      <label>Orientation<select id="orientationFilter"><option value="all">All orientations</option><option value="landscape">Landscape</option><option value="portrait">Portrait</option><option value="square">Square</option></select></label>
+      <label>Assignment<select id="assignmentFilter"><option value="all">Assigned and unassigned</option><option value="assigned">Assigned</option><option value="unassigned">Unassigned</option></select></label>
+      <label>Role<select id="roleFilter"><option value="all">All roles</option><option value="destination-hero">Destination Hero</option><option value="feeling">Feeling Image</option><option value="chloes-take">Chloe’s Take</option><option value="recommendation">Recommendation Image</option><option value="story">Story Image</option><option value="do-not-use">Do Not Use</option></select></label>
+      <label>Recommendation<select id="recommendationFilter"><option value="all">All recommendations</option>{recommendations.map(item => <option value={item.id}>{item.name}</option>)}</select></label>
+      <label>Do not use<select id="doNotUseFilter"><option value="all">Include all</option><option value="only">Only do-not-use</option><option value="exclude">Exclude do-not-use</option></select></label>
+      <label>Sort<select id="photoSort"><option value="ascending">Filename A–Z</option><option value="descending">Filename Z–A</option></select></label>
       <p aria-live="polite" id="photoCount">Showing {photos.length} photos.</p>
     </section>
 
@@ -129,116 +162,67 @@ const reviewRoles = [
 
     <section class="photo-grid" id="photoGrid" aria-label="Leiden photographs">
       {photos.map(photo => (
-        <article
-          class="photo-catalog-card"
-          data-filename={photo.filename.toLowerCase()}
-          data-orientation={photo.orientation}
-        >
-          <div class="catalog-thumbnail">
-            <img src={photo.imageUrl} alt={`Catalog preview of ${photo.filename}`} loading="lazy" />
-          </div>
+        <article class="photo-catalog-card" data-src={photo.publicPath} data-filename={photo.filename.toLowerCase()} data-orientation={photo.orientation} tabindex="0" role="button" aria-label={`Edit assignment for ${photo.filename}`}>
+          <div class="catalog-thumbnail"><img src={photo.imageUrl} alt={`Catalog preview of ${photo.filename}`} loading="lazy" /></div>
           <div class="catalog-details">
-            <h2>{photo.filename}</h2>
+            <div class="card-title"><h2>{photo.filename}</h2><span class="assignment-badge">Unassigned</span></div>
             <dl>
               <div><dt>Dimensions</dt><dd>{photo.width} × {photo.height}</dd></div>
               <div><dt>Orientation</dt><dd>{photo.orientation}</dd></div>
-              <div><dt>File size</dt><dd>{formatFileSize(photo.bytes)}</dd></div>
+              <div><dt>File size</dt><dd>{photo.fileSize}</dd></div>
               <div><dt>Public path</dt><dd><code>{photo.publicPath}</code></dd></div>
             </dl>
-            <div class="review-roles" aria-label={`Possible manual roles for ${photo.filename}`}>
-              {reviewRoles.map(role => <span>{role}</span>)}
-            </div>
+            <p class="assignment-detail">Select to assign a role.</p>
           </div>
         </article>
       ))}
     </section>
-
     <p class="empty-library" id="emptyLibrary" hidden>No photographs match the current controls.</p>
   </main>
 
-  <script>
-    const searchInput = document.querySelector<HTMLInputElement>('#photoSearch')!;
-    const orientationFilter = document.querySelector<HTMLSelectElement>('#orientationFilter')!;
-    const sortControl = document.querySelector<HTMLSelectElement>('#photoSort')!;
-    const photoGrid = document.querySelector<HTMLElement>('#photoGrid')!;
-    const photoCount = document.querySelector<HTMLElement>('#photoCount')!;
-    const emptyLibrary = document.querySelector<HTMLElement>('#emptyLibrary')!;
-    const cards = [...document.querySelectorAll<HTMLElement>('.photo-catalog-card')];
+  <dialog id="assignmentDialog" aria-labelledby="editorTitle">
+    <div class="editor-shell">
+      <div class="preview-column">
+        <img id="editorPreview" src="" alt="" />
+        <div class="preview-navigation">
+          <button type="button" id="previousPhoto" aria-label="Previous photo">← Previous</button>
+          <span id="previewPosition"></span>
+          <button type="button" id="nextPhoto" aria-label="Next photo">Next →</button>
+        </div>
+      </div>
+      <form id="assignmentForm" class="assignment-form">
+        <div class="editor-header"><div><div class="eyebrow rust">Photo assignment</div><h2 id="editorTitle"></h2></div><button type="button" id="closeEditor" aria-label="Close assignment editor">×</button></div>
+        <label>Destination<input name="destination" value="Leiden" readonly /></label>
+        <label>Role<select name="role" required><option value="unassigned">Unassigned</option><option value="destination-hero">Destination Hero</option><option value="feeling">Feeling Image</option><option value="chloes-take">Chloe’s Take</option><option value="recommendation">Recommendation Image</option><option value="story">Story Image</option><option value="do-not-use">Do Not Use</option></select></label>
+        <label id="relatedField" hidden>Related item<select name="relatedId"></select></label>
+        <label id="customStoryField" hidden>Custom short story label<input name="customStoryLabel" maxlength="100" /></label>
+        <fieldset id="priorityField" hidden><legend>Priority</legend><label><input type="radio" name="priority" value="primary" /> Primary</label><label><input type="radio" name="priority" value="secondary" /> Secondary</label></fieldset>
+        <label>Alt text <span id="altRequirement">Optional while unassigned</span><textarea name="alt" rows="3"></textarea></label>
+        <p class="field-help">Write final alt text yourself. The tool does not generate it.</p>
+        <label>Notes <span>Optional</span><textarea name="notes" rows="3"></textarea></label>
+        <div class="form-actions"><button type="submit" class="primary-action">Save draft assignment</button><button type="button" id="removeAssignment">Set to unassigned</button></div>
+      </form>
+    </div>
+  </dialog>
 
-    const updateCatalog = () => {
-      const searchTerm = searchInput.value.trim().toLowerCase();
-      const orientation = orientationFilter.value;
-      const direction = sortControl.value === 'descending' ? -1 : 1;
-      let visibleCount = 0;
-
-      cards
-        .sort((first, second) => (first.dataset.filename ?? '').localeCompare(
-          second.dataset.filename ?? '',
-          'en',
-          { numeric: true, sensitivity: 'base' },
-        ) * direction)
-        .forEach(card => {
-          const visible = (card.dataset.filename ?? '').includes(searchTerm)
-            && (orientation === 'all' || card.dataset.orientation === orientation);
-          card.hidden = !visible;
-          if (visible) visibleCount += 1;
-          photoGrid.append(card);
-        });
-
-      photoCount.textContent = `Showing ${visibleCount} photo${visibleCount === 1 ? '' : 's'}.`;
-      emptyLibrary.hidden = visibleCount !== 0;
-    };
-
-    searchInput.addEventListener('input', updateCatalog);
-    orientationFilter.addEventListener('change', updateCatalog);
-    sortControl.addEventListener('change', updateCatalog);
-  </script>
+  <script is:inline id="photoCatalogData" type="application/json" set:html={JSON.stringify(clientData).replaceAll('<', '\\u003c')} />
+  <script>import '../../../scripts/leidenPhotoCatalog';</script>
 </BaseLayout>
 
 <style>
+  :global(body:has(#assignmentDialog[open])){overflow:hidden}
   .photo-library{min-height:100vh;padding:70px clamp(20px,5vw,80px);background:#f4f0e7;color:#142824}
-  .photo-library-header{max-width:980px;margin:0 auto 42px}
-  .photo-library-header h1{margin:8px 0 14px;font:clamp(3rem,7vw,6.5rem)/.95 Georgia,serif;letter-spacing:-.045em}
-  .photo-library-header>p{max-width:720px;margin:0;color:#52655d;font-size:1.05rem}
-  .library-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;margin:30px 0 0;overflow:hidden;border:1px solid rgba(20,40,36,.14);border-radius:18px;background:rgba(20,40,36,.14)}
-  .library-summary div{padding:16px;background:#fffdf8}
-  .library-summary dt{text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;font-weight:800;color:#6a7a73}
-  .library-summary dd{margin:3px 0 0;font:1.65rem Georgia,serif}
-  .library-controls{position:sticky;z-index:20;top:0;display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:14px;align-items:end;max-width:1400px;margin:0 auto 30px;padding:18px;border:1px solid rgba(20,40,36,.12);border-radius:20px;background:rgba(255,253,248,.96);box-shadow:0 12px 34px rgba(20,40,36,.1);backdrop-filter:blur(12px)}
-  .library-controls label{display:grid;gap:6px;text-transform:uppercase;letter-spacing:.1em;font-size:.62rem;font-weight:800;color:#52655d}
-  .library-controls input,.library-controls select{width:100%;min-height:44px;padding:9px 12px;border:1px solid rgba(20,40,36,.2);border-radius:10px;background:white;color:#142824;font:inherit;letter-spacing:normal;text-transform:none}
-  .library-controls p{margin:0 0 11px;white-space:nowrap;color:#52655d;font-size:.82rem}
-  .library-notices{max-width:1400px;margin:0 auto 30px;padding:20px 24px;border-radius:18px;background:#eadfd4}
-  .library-notices div+div{margin-top:18px;padding-top:18px;border-top:1px solid rgba(20,40,36,.14)}
-  .library-notices h2{margin:0 0 5px;font:1.2rem Georgia,serif}
-  .library-notices p{margin:0;color:#52655d;overflow-wrap:anywhere}
-  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:24px;max-width:1400px;margin:0 auto}
-  .photo-catalog-card{overflow:hidden;border:1px solid rgba(20,40,36,.12);border-radius:20px;background:#fffdf8;box-shadow:0 16px 40px rgba(20,40,36,.09)}
-  .photo-catalog-card[hidden]{display:none}
-  .catalog-thumbnail{display:grid;place-items:center;height:300px;padding:14px;background:#dfe5df}
-  .catalog-thumbnail img{width:100%;height:100%;object-fit:contain}
-  .catalog-details{padding:20px}
-  .catalog-details h2{margin:0 0 14px;font:1.18rem/1.25 Georgia,serif;overflow-wrap:anywhere}
-  .catalog-details dl{display:grid;gap:7px;margin:0}
-  .catalog-details dl div{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px}
-  .catalog-details dt{color:#6b7b74;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
-  .catalog-details dd{min-width:0;margin:0;font-size:.82rem;overflow-wrap:anywhere}
-  .catalog-details code{font-size:.75rem}
-  .review-roles{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(20,40,36,.12)}
-  .review-roles span{padding:6px 8px;border:1px dashed rgba(20,40,36,.28);border-radius:999px;color:#66766f;font-size:.66rem}
-  .empty-library{max-width:1400px;margin:30px auto;padding:40px;text-align:center;border-radius:18px;background:#fffdf8}
-  @media(max-width:850px){
-    .library-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .library-controls{position:static;grid-template-columns:1fr 1fr}
-    .library-controls label:first-child{grid-column:1/-1}
-    .library-controls p{grid-column:1/-1;margin:0}
-  }
-  @media(max-width:520px){
-    .photo-library{padding:42px 16px}
-    .library-summary{grid-template-columns:1fr 1fr}
-    .library-controls{grid-template-columns:1fr}
-    .library-controls label:first-child,.library-controls p{grid-column:auto}
-    .photo-grid{grid-template-columns:1fr}
-    .catalog-thumbnail{height:260px}
-  }
+  .photo-library-header,.assignment-summary{max-width:1400px;margin-inline:auto}
+  .photo-library-header{margin-bottom:34px}.photo-library-header h1{max-width:1000px;margin:8px 0 14px;font:clamp(3rem,7vw,6.5rem)/.95 Georgia,serif;letter-spacing:-.045em}.photo-library-header>p{max-width:780px;margin:0;color:#52655d;font-size:1.05rem}.photo-library-header .sharp-note{margin-top:16px;padding:14px 18px;border-left:3px solid #b76243;background:#fffdf8;font-size:.88rem}
+  .assignment-summary{margin-bottom:26px;padding:24px;border:1px solid rgba(20,40,36,.12);border-radius:22px;background:#fffdf8;box-shadow:0 16px 40px rgba(20,40,36,.08)}
+  .summary-heading{display:flex;justify-content:space-between;gap:20px;align-items:start}.summary-heading h2{margin:5px 0 0;font:2rem Georgia,serif}.export-state{padding:7px 10px;border-radius:999px;background:#e8ece8;color:#52655d;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.export-state.changed{background:#f3dfd4;color:#8d422c}
+  .summary-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;margin:20px 0;overflow:hidden;border:1px solid rgba(20,40,36,.14);border-radius:14px;background:rgba(20,40,36,.14)}.summary-grid div{padding:13px;background:#f9f7f1}.summary-grid dt{text-transform:uppercase;letter-spacing:.08em;font-size:.57rem;font-weight:800;color:#6a7a73}.summary-grid dd{margin:4px 0 0;font:1.2rem Georgia,serif}.validation-summary.has-errors{background:#f7ded5}.summary-actions{display:flex;flex-wrap:wrap;gap:10px}.summary-actions button,.file-action,.form-actions button,.preview-navigation button{min-height:42px;padding:9px 14px;border:1px solid rgba(20,40,36,.22);border-radius:10px;background:white;color:#142824;font:inherit;cursor:pointer}.primary-action{background:#193b33!important;color:white!important}.danger-action{margin-left:auto;color:#923d2c!important}.file-action{display:inline-flex;align-items:center}.file-action input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.file-action:focus-within{outline:2px solid #b76243;outline-offset:2px}.action-message{min-height:1.25em;margin:12px 0 0;color:#52655d}.validation-errors{margin-top:12px;padding:14px 18px;border-radius:12px;background:#f7ded5;color:#6c2c20}.validation-errors ul{margin:8px 0 0;padding-left:20px}
+  .library-controls{position:sticky;z-index:20;top:0;display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:12px;align-items:end;max-width:1400px;margin:0 auto 30px;padding:18px;border:1px solid rgba(20,40,36,.12);border-radius:20px;background:rgba(255,253,248,.96);box-shadow:0 12px 34px rgba(20,40,36,.1);backdrop-filter:blur(12px)}.library-controls label{display:grid;gap:6px;text-transform:uppercase;letter-spacing:.08em;font-size:.58rem;font-weight:800;color:#52655d}.library-controls input,.library-controls select,.assignment-form input,.assignment-form select,.assignment-form textarea{width:100%;min-height:44px;padding:9px 12px;border:1px solid rgba(20,40,36,.2);border-radius:10px;background:white;color:#142824;font:inherit;letter-spacing:normal;text-transform:none}.library-controls p{grid-column:1/-1;margin:0;color:#52655d;font-size:.82rem}
+  .existing-assignments{max-width:1400px;margin:0 auto 26px;padding:18px 22px;border:1px solid rgba(20,40,36,.12);border-radius:16px;background:#e8ece8}.existing-assignments summary{cursor:pointer;font-weight:800}.existing-assignments>p{color:#52655d}.existing-assignments ul{display:grid;gap:7px;margin:14px 0 0;padding:0;list-style:none}.existing-assignments li{display:flex;justify-content:space-between;gap:18px;padding-top:7px;border-top:1px solid rgba(20,40,36,.1);font-size:.82rem}.existing-assignments code{overflow-wrap:anywhere}.existing-assignments span{text-align:right;color:#52655d}
+  .library-notices{max-width:1400px;margin:0 auto 30px;padding:20px 24px;border-radius:18px;background:#eadfd4}.library-notices div+div{margin-top:18px;padding-top:18px;border-top:1px solid rgba(20,40,36,.14)}.library-notices h2{margin:0 0 5px;font:1.2rem Georgia,serif}.library-notices p{margin:0;color:#52655d;overflow-wrap:anywhere}
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:24px;max-width:1400px;margin:0 auto}.photo-catalog-card{overflow:hidden;border:2px solid transparent;border-radius:20px;background:#fffdf8;box-shadow:0 16px 40px rgba(20,40,36,.09);cursor:pointer;transition:border-color .2s,transform .2s}.photo-catalog-card:hover,.photo-catalog-card:focus-visible{border-color:#b76243;transform:translateY(-2px);outline:none}.photo-catalog-card.assigned{border-color:#728f83}.photo-catalog-card.do-not-use{opacity:.62}.photo-catalog-card[hidden]{display:none}.catalog-thumbnail{display:grid;place-items:center;height:300px;padding:14px;background:#dfe5df}.catalog-thumbnail img{width:100%;height:100%;object-fit:contain}.catalog-details{padding:20px}.card-title{display:flex;gap:12px;align-items:start;justify-content:space-between}.catalog-details h2{margin:0 0 14px;font:1.18rem/1.25 Georgia,serif;overflow-wrap:anywhere}.assignment-badge{flex:none;max-width:48%;padding:6px 8px;border-radius:999px;background:#e8ece8;color:#52655d;font-size:.62rem;font-weight:800;text-align:center}.assigned .assignment-badge{background:#193b33;color:white}.do-not-use .assignment-badge{background:#6b5148}.catalog-details dl{display:grid;gap:7px;margin:0}.catalog-details dl div{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px}.catalog-details dt{color:#6b7b74;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.catalog-details dd{min-width:0;margin:0;font-size:.82rem;overflow-wrap:anywhere}.catalog-details code{font-size:.75rem}.assignment-detail{min-height:2.3em;margin:16px 0 0;padding-top:14px;border-top:1px solid rgba(20,40,36,.12);color:#52655d;font-size:.78rem}.empty-library{max-width:1400px;margin:30px auto;padding:40px;text-align:center;border-radius:18px;background:#fffdf8}
+  #assignmentDialog{width:min(1180px,calc(100vw - 32px));max-width:none;padding:0;border:0;border-radius:24px;background:#fffdf8;color:#142824;box-shadow:0 28px 90px rgba(5,18,15,.35)}#assignmentDialog::backdrop{background:rgba(5,18,15,.72);backdrop-filter:blur(5px)}.editor-shell{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);max-height:min(850px,calc(100vh - 32px));overflow:auto}.preview-column{display:grid;grid-template-rows:minmax(0,1fr) auto;min-height:650px;padding:22px;background:#dfe5df}.preview-column>img{width:100%;height:100%;min-height:0;object-fit:contain}.preview-navigation{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding-top:14px}.preview-navigation span{text-align:center;color:#52655d;font-size:.78rem}.assignment-form{display:grid;align-content:start;gap:14px;padding:28px}.editor-header{display:flex;justify-content:space-between;gap:18px}.editor-header h2{margin:4px 0 0;font:2rem/1.05 Georgia,serif;overflow-wrap:anywhere}.editor-header button{width:42px;height:42px;border:0;border-radius:50%;background:#e8ece8;font-size:1.8rem;cursor:pointer}.assignment-form>label{display:grid;gap:6px;color:#52655d;font-size:.73rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em}.assignment-form label span{font-weight:500;text-transform:none;letter-spacing:normal}.assignment-form textarea{resize:vertical}.assignment-form fieldset{display:flex;gap:20px;margin:0;padding:12px 14px;border:1px solid rgba(20,40,36,.18);border-radius:10px}.assignment-form fieldset legend{padding:0 5px;color:#52655d;font-size:.73rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em}.assignment-form fieldset label{display:flex;align-items:center;gap:7px}.assignment-form fieldset input{width:auto;min-height:auto}.field-help{margin:-8px 0 0;color:#6b7b74;font-size:.75rem}.form-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+  @media(max-width:1050px){.summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.library-controls{position:static;grid-template-columns:repeat(3,1fr)}.editor-shell{grid-template-columns:1fr}.preview-column{min-height:420px}.preview-column>img{height:360px}}
+  @media(max-width:700px){.photo-library{padding:42px 16px}.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-heading{display:grid}.summary-actions>*{width:100%;justify-content:center}.danger-action{margin-left:0}.library-controls{grid-template-columns:1fr 1fr}.photo-grid{grid-template-columns:1fr}.catalog-thumbnail{height:280px}#assignmentDialog{width:100vw;height:100dvh;max-height:none;border-radius:0}.editor-shell{max-height:none}.preview-column{min-height:320px;padding:12px}.preview-column>img{height:280px}.assignment-form{padding:20px}}
+  @media(max-width:430px){.library-controls{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}}
 </style>
