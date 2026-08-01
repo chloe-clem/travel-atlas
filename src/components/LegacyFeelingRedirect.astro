@@ -1,0 +1,20 @@
+---
+const base = import.meta.env.BASE_URL;
+const destination = `${base}feelings/immersed/`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="refresh" content={`0; url=${destination}`} />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={new URL(destination, Astro.site)} />
+    <title>Collection moved | Travel Atlas</title>
+    <script is:inline define:vars={{ destination }}>window.location.replace(destination);</script>
+  </head>
+  <body>
+    <p>This collection has moved to <a href={destination}>Immersed</a>.</p>
+  </body>
+</html>

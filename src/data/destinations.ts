@@ -17,7 +17,7 @@ export interface Destination {
 }
 
 export const destinations: Destination[] = [
-  {name:'Leiden',slug:'leiden',country:'Netherlands',continent:'Europe',latitude:52.1601,longitude:4.4970,note:'A quaint, walkable student city that felt like a calmer Amsterdam.',status:'documented',feelings:['immersed','relaxed','home','inspired'],featuredImage:'photos/leiden/img_0541.jpg',visitLabel:'Study abroad',characteristics:['Walkable','Bike-friendly','Student City','Historic Canals'],story:[
+  {name:'Leiden',slug:'leiden',country:'Netherlands',continent:'Europe',latitude:52.1601,longitude:4.4970,note:'A quaint, walkable student city that felt like a calmer Amsterdam.',status:'documented',feelings:['immersed','relaxed','inspired'],featuredImage:'photos/leiden/img_0541.jpg',visitLabel:'Study abroad',characteristics:['Walkable','Bike-friendly','Student City','Historic Canals'],story:[
     'I spent five months living in Leiden while studying abroad, and it became one of my favorite places I’ve ever lived.',
     'Beautiful canals are everywhere you turn. People park their boats on the canals and ride them around on sunny days to relax with their families.',
     'The Wednesday and Saturday market brings fresh meat, cheese, bread, stroopwafels, flowers, and plenty of reasons to linger in the center of town.'
@@ -80,7 +80,7 @@ export const destinations: Destination[] = [
     'Switzerland was an absolute dream for someone who loves mountains and the outdoors.',
     'Bern is easy to reach from the airport. It is not out in the mountains, but it is still beautiful and worth visiting for its greenery and hilly meadows.'
   ]},
-  {name:'Brig',slug:'brig',country:'Switzerland',continent:'Europe',latitude:46.3167,longitude:7.9833,note:'A quiet Alpine town discovered by taking the wrong train.',status:'documented',feelings:['immersed','home'],featuredImage:'',visitLabel:'Study abroad',story:[
+  {name:'Brig',slug:'brig',country:'Switzerland',continent:'Europe',latitude:46.3167,longitude:7.9833,note:'A quiet Alpine town discovered by taking the wrong train.',status:'documented',feelings:['immersed'],featuredImage:'',visitLabel:'Study abroad',story:[
     'I ended up in Brig by accident after taking the wrong train, but I was so glad I did.',
     'It was such a cute, quiet town.'
   ]},
