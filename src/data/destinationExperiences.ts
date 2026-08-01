@@ -108,7 +108,7 @@ export const destinationExperiences: Record<string, DestinationExperience> = {
     },
     map: {
       eyebrow: 'Every place, on one map',
-      heading: 'See where the memories happened.',
+      heading: 'Browse my handpicked recommendations.',
       description: 'Verified recommendations are pinned on the map, so you can see how the city fits together. Explore cafés, museums, hidden gems, and favorite spots in context, not just as a list.',
       style: 'https://tiles.openfreemap.org/styles/positron',
       center: [4.497, 52.1601],
@@ -122,7 +122,7 @@ export const destinationExperiences: Record<string, DestinationExperience> = {
     },
     stories: {
       eyebrow: 'Stories left untold',
-      heading: 'The memories beyond the guide.',
+      heading: 'Notes from my time here.',
       description: 'Select a photograph to see the story, recommendation, or context behind it.',
       modalLabel: 'Stories left untold',
       items: [
