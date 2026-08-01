@@ -14,5 +14,9 @@
     "astro": "^5.12.8",
     "maplibre-gl": "^6.1.0",
     "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "sharp": "^0.35.3"
   }
 }

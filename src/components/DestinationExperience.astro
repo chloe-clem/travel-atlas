@@ -1,0 +1,147 @@
+---
+import EditorialTake from './EditorialTake.astro';
+import RecommendationCard from './RecommendationCard.astro';
+import RecommendationExplorerHeader from './RecommendationExplorerHeader.astro';
+import type { Destination } from '../data/destinations';
+import type { DestinationExperience as DestinationExperienceData } from '../data/destinationExperiences';
+import type { Recommendation } from '../data/recommendations';
+
+interface Props {
+  destination: Destination;
+  experience: DestinationExperienceData;
+  recommendations: Recommendation[];
+}
+
+const { destination, experience, recommendations } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const assetUrl = (path: string) => `${base}${path}`;
+const recommendationPayload = JSON.stringify(recommendations).replaceAll('<', '\\u003c');
+---
+
+<a class="destination-back" href={`${base}?return=atlas#atlas-list`} id="destinationBack" data-base={base}>← Back to atlas</a>
+
+<nav class="nav">
+  <a class="brand" href={base}>Chloe's Travel Atlas</a>
+  <div class="navlinks">
+    {experience.navigation.feelings && <a href={`${base}?return=feel#feel`}>Feelings</a>}
+    {experience.navigation.take && <a href="#take">Chloe's Take</a>}
+    {experience.navigation.map && <a href="#map">Map</a>}
+    {experience.navigation.recommendations && <a href="#recommendations">Recommendations</a>}
+    {experience.navigation.stories && <a href="#stories">Stories</a>}
+  </div>
+</nav>
+
+<header class="city-hero">
+  <img alt={experience.hero.imageAlt} src={assetUrl(experience.hero.image)} />
+  <div class="wrap city-head fade">
+    <div class="eyebrow">{experience.hero.eyebrow}</div>
+    <h1>{destination.name}</h1>
+    <p>{experience.hero.description}</p>
+    <div class="city-meta">{experience.hero.characteristics.map(characteristic => <span>{characteristic}</span>)}</div>
+  </div>
+</header>
+
+<main>
+  {experience.sections.take && (
+    <EditorialTake
+      label={experience.editorialTake.label}
+      heading={experience.editorialTake.heading}
+      quote={experience.editorialTake.quote}
+      paragraphs={experience.editorialTake.paragraphs}
+      imageSrc={assetUrl(experience.editorialTake.image)}
+      imageAlt={experience.editorialTake.imageAlt}
+    />
+  )}
+
+  {(experience.sections.recommendations || experience.sections.map) && (
+    <section class="recommendation-explorer" id="recommendations">
+      {experience.sections.recommendations && (
+        <>
+          <RecommendationExplorerHeader destinationName={destination.name} recommendations={recommendations} />
+          <section class="section recommendations" id="recommendationCards">
+            <div class="wrap">
+              <div class="eyebrow rust">{experience.recommendations.eyebrow}</div>
+              <div class="rec-heading"><h2 class="fade">{experience.recommendations.heading}</h2></div>
+              <div class="place-grid">
+                {recommendations.map(recommendation => <RecommendationCard base={base} recommendation={recommendation} />)}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {experience.sections.map && (
+        <section class="section map-section" id="map">
+          <div class="wrap map-layout">
+            <div class="map-copy fade">
+              <div class="eyebrow rust">{experience.map.eyebrow}</div>
+              <h2>{experience.map.heading}</h2>
+              <p>{experience.map.description}</p>
+            </div>
+            <div
+              aria-label={`Interactive map of ${destination.name} recommendations`}
+              class="city-map fade"
+              data-map-style={experience.map.style}
+              data-map-center={experience.map.center.join(',')}
+              data-map-zoom={experience.map.zoom}
+              data-map-selection-zoom={experience.map.selectionZoom}
+              data-map-min-zoom={experience.map.minZoom}
+              data-map-max-zoom={experience.map.maxZoom}
+              id="cityMap"
+            >
+              <div class="map-canvas" id="mapCanvas"></div>
+              <div class="map-setup" id="mapSetup" hidden>
+                <div class="eyebrow rust">{experience.map.setupEyebrow}</div>
+                <h3>{experience.map.setupHeading}</h3>
+                <p>{experience.map.setupDescription}</p>
+              </div>
+              <div class="map-card is-cleared" id="mapCard">
+                <img alt="" />
+                <div>
+                  <span>Selected place</span>
+                  <h3></h3>
+                  <p></p>
+                  <div class="map-card-actions">
+                    <button type="button">View recommendation</button>
+                    <a data-map-link="google" href="#" rel="noopener noreferrer" target="_blank">Open in Google Maps</a>
+                    <a data-map-link="apple" href="#" rel="noopener noreferrer" target="_blank">Open in Apple Maps</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+    </section>
+  )}
+
+  {experience.sections.stories && (
+    <section class="section wrap" id="stories">
+      <div class="eyebrow rust">{experience.stories.eyebrow}</div>
+      <div class="stories-heading">
+        <h2 class="fade">{experience.stories.heading}</h2>
+        <p class="fade">{experience.stories.description}</p>
+      </div>
+      <div class="story-gallery fade" id="storyGallery">
+        {experience.stories.items.map(story => (
+          <button data-img={assetUrl(story.image)} data-story={story.story} data-title={story.title}>
+            <img alt={story.imageAlt} src={assetUrl(story.image)} />
+            <span>{story.statusLabel}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  )}
+</main>
+
+{experience.sections.stories && (
+  <div class="story-modal" hidden id="storyModal">
+    <button aria-label="Close" class="modal-close">×</button>
+    <img alt="" />
+    <div><span>{experience.stories.modalLabel}</span><h2></h2><p></p></div>
+  </div>
+)}
+
+<footer class="footer"><div>Chloe's Travel Atlas</div><a href={base}>Back to the globe ↑</a></footer>
+
+<script is:inline id="destinationRecommendations" type="application/json" set:html={recommendationPayload}></script>
