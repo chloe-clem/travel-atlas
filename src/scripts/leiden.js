@@ -1,4 +1,5 @@
-import 'mapbox-gl/dist/mapbox-gl.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import { getExternalMapLinks, getRecommendationsByDestination, hasVerifiedCoordinates } from '../data/recommendations';
 
 const revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
   if(entry.isIntersecting) entry.target.classList.add('visible');
@@ -13,28 +14,35 @@ const mapSetup=document.getElementById('mapSetup');
 const mapCard=document.getElementById('mapCard');
 const filterStatus=document.getElementById('filterStatus');
 const prefersReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const places=cards.map(card=>({
-  id:card.dataset.placeId,
-  coordinates:[Number(card.dataset.lng),Number(card.dataset.lat)],
-  tags:(card.dataset.tags||'').split(' ').filter(Boolean),
-  title:card.querySelector('h3')?.textContent?.trim()||'',
-  description:card.querySelector('.place-copy>p')?.textContent?.trim()||'',
-  image:card.querySelector('img')?.src||'',
-  imageAlt:card.querySelector('img')?.alt||'',
-  card,
-}));
+const cardsById=new Map(cards.map(card=>[card.dataset.placeId,card]));
+const places=getRecommendationsByDestination('leiden').map(recommendation=>({
+  ...recommendation,
+  card:cardsById.get(recommendation.id),
+})).filter(place=>place.card);
+const verifiedPlaces=places.filter(hasVerifiedCoordinates);
 const markers=new Map();
 let map;
-let mapboxgl;
+let maplibregl;
 let selectedPlaceId;
 
 function updateMapCard(place){
   const image=mapCard?.querySelector('img');
   if(!mapCard||!image) return;
-  image.src=place.image;
+  image.src=place.image ? new URL(place.image,new URL('../../',document.baseURI)).href : '';
   image.alt=place.imageAlt;
-  mapCard.querySelector('h3').textContent=place.title;
-  mapCard.querySelector('p').textContent=place.description;
+  image.hidden=!place.image;
+  mapCard.classList.toggle('without-image',!place.image);
+  mapCard.querySelector('h3').textContent=place.name;
+  mapCard.querySelector('p').textContent=place.shortDescription;
+  const externalMapLinks=getExternalMapLinks(place);
+  const googleLink=mapCard.querySelector('[data-map-link="google"]');
+  const appleLink=mapCard.querySelector('[data-map-link="apple"]');
+  if(externalMapLinks&&googleLink&&appleLink){
+    googleLink.href=externalMapLinks.google;
+    googleLink.setAttribute('aria-label',`Open ${place.name} in Google Maps (opens in a new tab)`);
+    appleLink.href=externalMapLinks.apple;
+    appleLink.setAttribute('aria-label',`Open ${place.name} in Apple Maps (opens in a new tab)`);
+  }
   mapCard.classList.remove('is-cleared');
 }
 
@@ -50,76 +58,84 @@ function selectPlace(place,{moveMap=true}={}){
   cards.forEach(card=>card.classList.toggle('selected',card===place.card));
   markers.forEach(({element},id)=>element.classList.toggle('selected',id===place.id));
   updateMapCard(place);
-  if(moveMap&&map){
-    map.easeTo({center:place.coordinates,zoom:15.6,duration:prefersReducedMotion?0:700,padding:{bottom:110}});
+  if(moveMap&&map&&hasVerifiedCoordinates(place)){
+    map.easeTo({center:[place.longitude,place.latitude],zoom:15.6,duration:prefersReducedMotion?0:700,padding:{bottom:110}});
   }
 }
 
 function applyFilter(filter){
   places.forEach(place=>{
-    const visible=filter==='all'||place.tags.includes(filter);
+    const visible=filter==='all'||place.interests.includes(filter);
     place.card.hidden=!visible;
     markers.get(place.id)?.element.toggleAttribute('hidden',!visible);
   });
   sharedFilters.forEach(button=>button.classList.toggle('active',button.dataset.filter===filter));
   clearSelection();
   const visiblePlaces=places.filter(place=>!place.card.hidden).length;
+  const visibleMapPlaces=verifiedPlaces.filter(place=>!place.card.hidden).length;
   const activeLabel=sharedFilters.find(button=>button.dataset.filter===filter)?.textContent||filter;
-  if(filterStatus) filterStatus.textContent=filter==='all'?'Showing every recommendation and map location.':`Showing ${visiblePlaces} recommendation${visiblePlaces===1?'':'s'} and ${visiblePlaces} map location${visiblePlaces===1?'':'s'} for ${activeLabel}.`;
+  if(filterStatus) filterStatus.textContent=filter==='all'
+    ? `Showing all ${visiblePlaces} recommendations and ${visibleMapPlaces} verified map location${visibleMapPlaces===1?'':'s'}.`
+    : `Showing ${visiblePlaces} recommendation${visiblePlaces===1?'':'s'} and ${visibleMapPlaces} verified map location${visibleMapPlaces===1?'':'s'} for ${activeLabel}.`;
 }
 
-function restyleMap(){
-  const style=map?.getStyle();
-  if(!style?.layers) return;
-  style.layers.forEach(layer=>{
-    try{
-      if(layer.type==='background') map.setPaintProperty(layer.id,'background-color','#e7e9e1');
-      if(layer.type==='water') map.setPaintProperty(layer.id,'fill-color','#9db8b4');
-      if(layer.type==='building') map.setPaintProperty(layer.id,'fill-color','#d7d7cc');
-      if(layer.type==='symbol'&&layer.paint?.['text-color']!==undefined) map.setPaintProperty(layer.id,'text-color','#40574f');
-    }catch{}
-  });
+function showMapSetup(eyebrow,heading,text){
+  if(!mapSetup||!mapCanvas) return;
+  mapSetup.querySelector('.eyebrow').textContent=eyebrow;
+  mapSetup.querySelector('h3').textContent=heading;
+  mapSetup.querySelector('p').textContent=text;
+  mapSetup.hidden=false;
+  mapCanvas.hidden=true;
 }
 
 async function initializeMap(){
   if(!mapContainer||!mapCanvas) return;
-  const accessToken=mapContainer.dataset.mapboxToken;
-  if(!accessToken){
-    mapSetup.hidden=false;
-    mapCanvas.hidden=true;
+  if(verifiedPlaces.length===0){
+    showMapSetup('Map locations coming soon','Verified Leiden pins are on the way.','Recommendations will appear here after their exact coordinates are confirmed.');
     return;
   }
-  ({default:mapboxgl}=await import('mapbox-gl'));
-  mapboxgl.accessToken=accessToken;
-  map=new mapboxgl.Map({
+  maplibregl=await import('maplibre-gl');
+  map=new maplibregl.Map({
     container:mapCanvas,
-    style:mapContainer.dataset.mapboxStyle,
+    style:mapContainer.dataset.mapStyle,
     center:[4.497,52.1601],
     zoom:14.1,
     minZoom:11,
     maxZoom:18,
     attributionControl:false,
   });
-  map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'top-right');
-  map.addControl(new mapboxgl.AttributionControl({compact:true}),'bottom-right');
-  map.on('style.load',restyleMap);
-  map.on('load',()=>{
-    places.forEach((place,index)=>{
-      const element=document.createElement('button');
-      element.type='button';
-      element.className='map-pin';
-      element.textContent=String(index+1);
-      element.setAttribute('aria-label',`Open ${place.title}`);
-      element.addEventListener('click',()=>selectPlace(place,{moveMap:false}));
-      element.toggleAttribute('hidden',place.card.hidden);
-      const marker=new mapboxgl.Marker({element,anchor:'bottom'}).setLngLat(place.coordinates).addTo(map);
-      markers.set(place.id,{marker,element});
-    });
+  map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+  map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
+  verifiedPlaces.forEach((place,index)=>{
+    const element=document.createElement('button');
+    element.type='button';
+    element.className='map-pin';
+    element.dataset.placeId=place.id;
+    element.textContent=String(index+1);
+    element.setAttribute('aria-label',`Open ${place.name}`);
+    element.toggleAttribute('hidden',place.card.hidden);
+    const marker=new maplibregl.Marker({element,anchor:'bottom'}).setLngLat([place.longitude,place.latitude]).addTo(map);
+    const markerElement=marker.getElement();
+    markers.set(place.id,{marker,element:markerElement});
   });
   new ResizeObserver(()=>map?.resize()).observe(mapContainer);
 }
 
 sharedFilters.forEach(button=>button.addEventListener('click',()=>applyFilter(button.dataset.filter)));
+mapContainer?.addEventListener('click',event=>{
+  const markerElement=event.target.closest('.map-pin[data-place-id]');
+  if(!markerElement) return;
+  const place=places.find(candidate=>candidate.id===markerElement.dataset.placeId);
+  if(place) selectPlace(place,{moveMap:false});
+},{capture:true});
+mapContainer?.addEventListener('keydown',event=>{
+  if(event.key!=='Enter'&&event.key!==' ') return;
+  const markerElement=event.target.closest('.map-pin[data-place-id]');
+  if(!markerElement) return;
+  event.preventDefault();
+  const place=places.find(candidate=>candidate.id===markerElement.dataset.placeId);
+  if(place) selectPlace(place,{moveMap:false});
+},{capture:true});
 cards.forEach(card=>{
   const place=places.find(candidate=>candidate.card===card);
   const activate=()=>selectPlace(place);
@@ -143,7 +159,7 @@ if(mapContainer){
   },{rootMargin:'300px'});
   mapObserver.observe(mapContainer);
 }
-clearSelection();
+applyFilter('all');
 
 const modal=document.getElementById('storyModal');
 document.querySelectorAll('#storyGallery button').forEach(button=>button.addEventListener('click',()=>{modal.querySelector('img').src=button.dataset.img;modal.querySelector('h2').textContent=button.dataset.title;modal.querySelector('p').textContent=button.dataset.story;modal.hidden=false;document.body.style.overflow='hidden';}));

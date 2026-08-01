@@ -1,9 +1,14 @@
 ---
+import type { Recommendation } from '../data/recommendations';
+import { getAvailableInterests, interestLabels } from '../data/recommendations';
+
 interface Props {
   destinationName: string;
+  recommendations: Recommendation[];
 }
 
-const { destinationName } = Astro.props;
+const { destinationName, recommendations } = Astro.props;
+const availableInterests = getAvailableInterests(recommendations);
 ---
 
 <div class="shared-explorer shared-explorer-sticky">
@@ -14,15 +19,9 @@ const { destinationName } = Astro.props;
     </div>
     <div aria-label={`Filter ${destinationName} recommendations and map`} class="shared-filters">
       <button class="shared-filter active" data-filter="all">All</button>
-      <button class="shared-filter" data-filter="food">Food</button>
-      <button class="shared-filter" data-filter="cafes">Cafés</button>
-      <button class="shared-filter" data-filter="activities">Activities</button>
-      <button class="shared-filter" data-filter="nature">Nature</button>
-      <button class="shared-filter" data-filter="museums">Museums</button>
-      <button class="shared-filter" data-filter="shopping">Shopping</button>
-      <button class="shared-filter" data-filter="day-trips">Day Trips</button>
-      <button class="shared-filter" data-filter="nightlife">Nightlife</button>
-      <button class="shared-filter" data-filter="hidden-gems">Hidden Gems</button>
+      {availableInterests.map((interest) => (
+        <button class="shared-filter" data-filter={interest}>{interestLabels[interest]}</button>
+      ))}
     </div>
     <p aria-live="polite" class="filter-status" id="filterStatus">Showing every recommendation and map location.</p>
   </div>

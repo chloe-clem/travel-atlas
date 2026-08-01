@@ -1,0 +1,43 @@
+---
+import type { Recommendation } from '../data/recommendations';
+import { interestLabels } from '../data/recommendations';
+
+interface Props {
+  recommendation: Recommendation;
+  base: string;
+}
+
+const { recommendation, base } = Astro.props;
+---
+
+<article
+  aria-label={`View ${recommendation.name} recommendation`}
+  class="place-card fade"
+  data-place-id={recommendation.id}
+  data-tags={recommendation.interests.join(' ')}
+  role="button"
+  tabindex="0"
+>
+  {recommendation.image
+    ? <img alt={recommendation.imageAlt} src={`${base}${recommendation.image}`} />
+    : <div aria-hidden="true" class="place-image-placeholder"></div>}
+  <div class="place-copy">
+    <div class="place-top">
+      <div>
+        <span>{interestLabels[recommendation.interests[0]]}</span>
+        <h3>{recommendation.name}</h3>
+      </div>
+      {recommendation.priceLevel && <b>{recommendation.priceLevel}</b>}
+    </div>
+    <p>{recommendation.shortDescription}</p>
+    {recommendation.whyIRecommendIt && (
+      <div class="recommendation-reason">
+        <span>Recommendation</span>
+        <p>{recommendation.whyIRecommendIt}</p>
+      </div>
+    )}
+    <div class="tags">
+      {recommendation.interests.map((interest) => <span>{interestLabels[interest]}</span>)}
+    </div>
+  </div>
+</article>

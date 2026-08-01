@@ -19,6 +19,8 @@ npm install
 npm run dev
 ```
 
+The interactive map uses MapLibre GL JS with OpenFreeMap and does not require an account, API key, token, `.env` file, or repository secret.
+
 ## Publish
 1. Create the repository `travel-atlas` under `chloe-clem`.
 2. Push this project to the `main` branch.

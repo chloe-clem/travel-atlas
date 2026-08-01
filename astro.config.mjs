@@ -4,4 +4,9 @@ export default defineConfig({
   output: 'static',
   site: 'https://chloe-clem.github.io',
   base: '/travel-atlas/',
+  vite: {
+    optimizeDeps: {
+      exclude: ['maplibre-gl'],
+    },
+  },
 });
