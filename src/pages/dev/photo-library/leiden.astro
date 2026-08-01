@@ -1,0 +1,244 @@
+---
+import { createHash } from 'node:crypto';
+import { readFile, readdir, stat } from 'node:fs/promises';
+import path from 'node:path';
+import sharp from 'sharp';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const base = import.meta.env.BASE_URL;
+const photoDirectory = path.join(process.cwd(), 'public', 'photos', 'leiden');
+const supportedExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
+const heicExtensions = new Set(['.heic', '.heif']);
+const filenames = await readdir(photoDirectory);
+const supportedFilenames = filenames
+  .filter(filename => supportedExtensions.has(path.extname(filename).toLowerCase()))
+  .sort((first, second) => first.localeCompare(second, 'en', { numeric: true, sensitivity: 'base' }));
+const heicFiles = filenames
+  .filter(filename => heicExtensions.has(path.extname(filename).toLowerCase()))
+  .sort((first, second) => first.localeCompare(second, 'en', { numeric: true, sensitivity: 'base' }));
+
+interface CatalogPhoto {
+  filename: string;
+  publicPath: string;
+  imageUrl: string;
+  width: number;
+  height: number;
+  orientation: 'portrait' | 'landscape' | 'square';
+  bytes: number;
+  hash: string;
+}
+
+const photos: CatalogPhoto[] = [];
+const unreadableFiles: string[] = [];
+
+for (const filename of supportedFilenames) {
+  const absolutePath = path.join(photoDirectory, filename);
+  try {
+    const [fileStats, fileBuffer, metadata] = await Promise.all([
+      stat(absolutePath),
+      readFile(absolutePath),
+      sharp(absolutePath).metadata(),
+    ]);
+    if (!metadata.width || !metadata.height) throw new Error('Missing image dimensions');
+
+    const orientation = metadata.width === metadata.height
+      ? 'square'
+      : metadata.width > metadata.height ? 'landscape' : 'portrait';
+
+    photos.push({
+      filename,
+      publicPath: `photos/leiden/${filename}`,
+      imageUrl: `${base}photos/leiden/${encodeURIComponent(filename)}`,
+      width: metadata.width,
+      height: metadata.height,
+      orientation,
+      bytes: fileStats.size,
+      hash: createHash('sha256').update(fileBuffer).digest('hex'),
+    });
+  } catch {
+    unreadableFiles.push(filename);
+  }
+}
+
+const filenamesByHash = new Map<string, string[]>();
+photos.forEach(photo => filenamesByHash.set(photo.hash, [...(filenamesByHash.get(photo.hash) ?? []), photo.filename]));
+const duplicateGroups = [...filenamesByHash.values()].filter(group => group.length > 1);
+
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+};
+
+const reviewRoles = [
+  'Destination hero candidate',
+  'Feeling image candidate',
+  'Chloe’s Take candidate',
+  'Recommendation candidate',
+  'Story-only',
+  'Do not use',
+];
+---
+
+<BaseLayout title="Leiden Photo Library | Development Tool">
+  <main class="photo-library">
+    <header class="photo-library-header">
+      <div class="eyebrow rust">Development tool</div>
+      <h1>Leiden Photo Library</h1>
+      <p>Review source photography and note filenames for manual assignments. Choices on this page are not saved.</p>
+      <dl class="library-summary">
+        <div><dt>Supported</dt><dd>{supportedFilenames.length}</dd></div>
+        <div><dt>Displayed</dt><dd>{photos.length}</dd></div>
+        <div><dt>Unreadable</dt><dd>{unreadableFiles.length}</dd></div>
+        <div><dt>HEIC / HEIF</dt><dd>{heicFiles.length}</dd></div>
+        <div><dt>Duplicate groups</dt><dd>{duplicateGroups.length}</dd></div>
+      </dl>
+    </header>
+
+    <section aria-label="Photo library controls" class="library-controls">
+      <label>
+        Search by filename
+        <input id="photoSearch" type="search" placeholder="Try IMG_3412" />
+      </label>
+      <label>
+        Orientation
+        <select id="orientationFilter">
+          <option value="all">All orientations</option>
+          <option value="landscape">Landscape</option>
+          <option value="portrait">Portrait</option>
+          <option value="square">Square</option>
+        </select>
+      </label>
+      <label>
+        Sort
+        <select id="photoSort">
+          <option value="ascending">Filename A–Z</option>
+          <option value="descending">Newest filename / Z–A</option>
+        </select>
+      </label>
+      <p aria-live="polite" id="photoCount">Showing {photos.length} photos.</p>
+    </section>
+
+    {(heicFiles.length > 0 || unreadableFiles.length > 0 || duplicateGroups.length > 0) && (
+      <section class="library-notices" aria-label="Photo audit notices">
+        {heicFiles.length > 0 && <div><h2>Unsupported HEIC / HEIF files</h2><p>{heicFiles.join(', ')}</p></div>}
+        {unreadableFiles.length > 0 && <div><h2>Unreadable supported files</h2><p>{unreadableFiles.join(', ')}</p></div>}
+        {duplicateGroups.length > 0 && <div><h2>Exact duplicate groups</h2>{duplicateGroups.map(group => <p>{group.join(' = ')}</p>)}</div>}
+      </section>
+    )}
+
+    <section class="photo-grid" id="photoGrid" aria-label="Leiden photographs">
+      {photos.map(photo => (
+        <article
+          class="photo-catalog-card"
+          data-filename={photo.filename.toLowerCase()}
+          data-orientation={photo.orientation}
+        >
+          <div class="catalog-thumbnail">
+            <img src={photo.imageUrl} alt={`Catalog preview of ${photo.filename}`} loading="lazy" />
+          </div>
+          <div class="catalog-details">
+            <h2>{photo.filename}</h2>
+            <dl>
+              <div><dt>Dimensions</dt><dd>{photo.width} × {photo.height}</dd></div>
+              <div><dt>Orientation</dt><dd>{photo.orientation}</dd></div>
+              <div><dt>File size</dt><dd>{formatFileSize(photo.bytes)}</dd></div>
+              <div><dt>Public path</dt><dd><code>{photo.publicPath}</code></dd></div>
+            </dl>
+            <div class="review-roles" aria-label={`Possible manual roles for ${photo.filename}`}>
+              {reviewRoles.map(role => <span>{role}</span>)}
+            </div>
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <p class="empty-library" id="emptyLibrary" hidden>No photographs match the current controls.</p>
+  </main>
+
+  <script>
+    const searchInput = document.querySelector<HTMLInputElement>('#photoSearch')!;
+    const orientationFilter = document.querySelector<HTMLSelectElement>('#orientationFilter')!;
+    const sortControl = document.querySelector<HTMLSelectElement>('#photoSort')!;
+    const photoGrid = document.querySelector<HTMLElement>('#photoGrid')!;
+    const photoCount = document.querySelector<HTMLElement>('#photoCount')!;
+    const emptyLibrary = document.querySelector<HTMLElement>('#emptyLibrary')!;
+    const cards = [...document.querySelectorAll<HTMLElement>('.photo-catalog-card')];
+
+    const updateCatalog = () => {
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      const orientation = orientationFilter.value;
+      const direction = sortControl.value === 'descending' ? -1 : 1;
+      let visibleCount = 0;
+
+      cards
+        .sort((first, second) => (first.dataset.filename ?? '').localeCompare(
+          second.dataset.filename ?? '',
+          'en',
+          { numeric: true, sensitivity: 'base' },
+        ) * direction)
+        .forEach(card => {
+          const visible = (card.dataset.filename ?? '').includes(searchTerm)
+            && (orientation === 'all' || card.dataset.orientation === orientation);
+          card.hidden = !visible;
+          if (visible) visibleCount += 1;
+          photoGrid.append(card);
+        });
+
+      photoCount.textContent = `Showing ${visibleCount} photo${visibleCount === 1 ? '' : 's'}.`;
+      emptyLibrary.hidden = visibleCount !== 0;
+    };
+
+    searchInput.addEventListener('input', updateCatalog);
+    orientationFilter.addEventListener('change', updateCatalog);
+    sortControl.addEventListener('change', updateCatalog);
+  </script>
+</BaseLayout>
+
+<style>
+  .photo-library{min-height:100vh;padding:70px clamp(20px,5vw,80px);background:#f4f0e7;color:#142824}
+  .photo-library-header{max-width:980px;margin:0 auto 42px}
+  .photo-library-header h1{margin:8px 0 14px;font:clamp(3rem,7vw,6.5rem)/.95 Georgia,serif;letter-spacing:-.045em}
+  .photo-library-header>p{max-width:720px;margin:0;color:#52655d;font-size:1.05rem}
+  .library-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;margin:30px 0 0;overflow:hidden;border:1px solid rgba(20,40,36,.14);border-radius:18px;background:rgba(20,40,36,.14)}
+  .library-summary div{padding:16px;background:#fffdf8}
+  .library-summary dt{text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;font-weight:800;color:#6a7a73}
+  .library-summary dd{margin:3px 0 0;font:1.65rem Georgia,serif}
+  .library-controls{position:sticky;z-index:20;top:0;display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:14px;align-items:end;max-width:1400px;margin:0 auto 30px;padding:18px;border:1px solid rgba(20,40,36,.12);border-radius:20px;background:rgba(255,253,248,.96);box-shadow:0 12px 34px rgba(20,40,36,.1);backdrop-filter:blur(12px)}
+  .library-controls label{display:grid;gap:6px;text-transform:uppercase;letter-spacing:.1em;font-size:.62rem;font-weight:800;color:#52655d}
+  .library-controls input,.library-controls select{width:100%;min-height:44px;padding:9px 12px;border:1px solid rgba(20,40,36,.2);border-radius:10px;background:white;color:#142824;font:inherit;letter-spacing:normal;text-transform:none}
+  .library-controls p{margin:0 0 11px;white-space:nowrap;color:#52655d;font-size:.82rem}
+  .library-notices{max-width:1400px;margin:0 auto 30px;padding:20px 24px;border-radius:18px;background:#eadfd4}
+  .library-notices div+div{margin-top:18px;padding-top:18px;border-top:1px solid rgba(20,40,36,.14)}
+  .library-notices h2{margin:0 0 5px;font:1.2rem Georgia,serif}
+  .library-notices p{margin:0;color:#52655d;overflow-wrap:anywhere}
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:24px;max-width:1400px;margin:0 auto}
+  .photo-catalog-card{overflow:hidden;border:1px solid rgba(20,40,36,.12);border-radius:20px;background:#fffdf8;box-shadow:0 16px 40px rgba(20,40,36,.09)}
+  .photo-catalog-card[hidden]{display:none}
+  .catalog-thumbnail{display:grid;place-items:center;height:300px;padding:14px;background:#dfe5df}
+  .catalog-thumbnail img{width:100%;height:100%;object-fit:contain}
+  .catalog-details{padding:20px}
+  .catalog-details h2{margin:0 0 14px;font:1.18rem/1.25 Georgia,serif;overflow-wrap:anywhere}
+  .catalog-details dl{display:grid;gap:7px;margin:0}
+  .catalog-details dl div{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px}
+  .catalog-details dt{color:#6b7b74;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .catalog-details dd{min-width:0;margin:0;font-size:.82rem;overflow-wrap:anywhere}
+  .catalog-details code{font-size:.75rem}
+  .review-roles{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(20,40,36,.12)}
+  .review-roles span{padding:6px 8px;border:1px dashed rgba(20,40,36,.28);border-radius:999px;color:#66766f;font-size:.66rem}
+  .empty-library{max-width:1400px;margin:30px auto;padding:40px;text-align:center;border-radius:18px;background:#fffdf8}
+  @media(max-width:850px){
+    .library-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .library-controls{position:static;grid-template-columns:1fr 1fr}
+    .library-controls label:first-child{grid-column:1/-1}
+    .library-controls p{grid-column:1/-1;margin:0}
+  }
+  @media(max-width:520px){
+    .photo-library{padding:42px 16px}
+    .library-summary{grid-template-columns:1fr 1fr}
+    .library-controls{grid-template-columns:1fr}
+    .library-controls label:first-child,.library-controls p{grid-column:auto}
+    .photo-grid{grid-template-columns:1fr}
+    .catalog-thumbnail{height:260px}
+  }
+</style>
