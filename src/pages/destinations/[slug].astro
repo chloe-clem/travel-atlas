@@ -1,23 +1,45 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import DestinationExperience from '../../components/DestinationExperience.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 import { destinations } from '../../data/destinations';
-export function getStaticPaths(){ return destinations.filter(d=>d.slug!=='leiden').map(destination=>({params:{slug:destination.slug},props:{destination}})); }
+import { getDestinationExperience } from '../../data/destinationExperiences';
+import { getRecommendationsByDestination } from '../../data/recommendations';
+
+export function getStaticPaths(){
+  return destinations.map(destination=>({
+    params:{slug:destination.slug},
+    props:{destination},
+  }));
+}
 const { destination }=Astro.props;
 const base=import.meta.env.BASE_URL;
+const experience=getDestinationExperience(destination.slug);
+const destinationRecommendations=experience?getRecommendationsByDestination(destination.slug):[];
 const hero=destination.featuredImage ? `${base}${destination.featuredImage}` : '';
 ---
 <BaseLayout title={`${destination.name} | Chloe's Travel Atlas`}>
-  <Nav destination />
-  <header class:list={['city-hero','text-hero',!hero && 'no-photo']}>
-    {hero && <img src={hero} alt={`${destination.name}, ${destination.country}`} />}
-    <div class="wrap city-head fade visible"><div class="eyebrow">{destination.country} · {destination.visitLabel}</div><h1>{destination.name}</h1><p>{destination.note}</p>{destination.characteristics?.length && <div class="city-meta">{destination.characteristics.map(characteristic=><span>{characteristic}</span>)}</div>}</div>
-  </header>
-  <main>
-    <section class="section wrap take-grid" id="take"><div><div class="eyebrow rust">From the original blog</div><h2>Your story is already here.</h2>{destination.story.map(paragraph=><p>{paragraph}</p>)}</div><aside class="pull-quote">Photos will be added here when you upload this destination’s folder.</aside></section>
-    <section class="section wrap photo-needed"><div class="eyebrow rust">Next content step</div><h2>Add the photographs.</h2><p>The page is generated and connected to the atlas and feeling collections. Once its images arrive, we can build the gallery, map pins, and recommendations around this text.</p></section>
-  </main>
-  <Footer destination />
+  {experience ? (
+    <DestinationExperience
+      destination={destination}
+      experience={experience}
+      recommendations={destinationRecommendations}
+    />
+  ) : (
+    <>
+      <Nav destination />
+      <header class:list={['city-hero','text-hero',!hero && 'no-photo']}>
+        {hero && <img src={hero} alt={`${destination.name}, ${destination.country}`} />}
+        <div class="wrap city-head fade visible"><div class="eyebrow">{destination.country} · {destination.visitLabel}</div><h1>{destination.name}</h1><p>{destination.note}</p>{destination.characteristics?.length && <div class="city-meta">{destination.characteristics.map(characteristic=><span>{characteristic}</span>)}</div>}</div>
+      </header>
+      <main>
+        <section class="section wrap take-grid" id="take"><div><div class="eyebrow rust">From the original blog</div><h2>Your story is already here.</h2>{destination.story.map(paragraph=><p>{paragraph}</p>)}</div><aside class="pull-quote">Photos will be added here when you upload this destination’s folder.</aside></section>
+        <section class="section wrap photo-needed"><div class="eyebrow rust">Next content step</div><h2>Add the photographs.</h2><p>The page is generated and connected to the atlas and feeling collections. Once its images arrive, we can build the gallery, map pins, and recommendations around this text.</p></section>
+      </main>
+      <Footer destination />
+    </>
+  )}
   <script is:inline src={`${base}scripts/destination-nav.js`}></script>
+  {experience && <script src="../../scripts/destinationExplorer.js"></script>}
 </BaseLayout>
