@@ -1,5 +1,4 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { getExternalMapLinks, getRecommendationsByDestination, hasVerifiedCoordinates } from '../data/recommendations';
 
 const revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
   if(entry.isIntersecting) entry.target.classList.add('visible');
@@ -8,6 +7,7 @@ document.querySelectorAll('.fade').forEach(element=>revealObserver.observe(eleme
 
 const cards=[...document.querySelectorAll('.place-card[data-place-id]')];
 const sharedFilters=[...document.querySelectorAll('.shared-filter')];
+const recommendationPayload=document.getElementById('destinationRecommendations');
 const mapContainer=document.getElementById('cityMap');
 const mapCanvas=document.getElementById('mapCanvas');
 const mapSetup=document.getElementById('mapSetup');
@@ -15,7 +15,49 @@ const mapCard=document.getElementById('mapCard');
 const filterStatus=document.getElementById('filterStatus');
 const prefersReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cardsById=new Map(cards.map(card=>[card.dataset.placeId,card]));
-const places=getRecommendationsByDestination('leiden').map(recommendation=>({
+
+function readRecommendations(){
+  if(!recommendationPayload?.textContent) return [];
+  try{
+    const recommendations=JSON.parse(recommendationPayload.textContent);
+    return Array.isArray(recommendations)?recommendations:[];
+  }catch{
+    return [];
+  }
+}
+
+function hasVerifiedCoordinates(recommendation){
+  return recommendation.coordinatesVerified===true
+    &&typeof recommendation.latitude==='number'
+    &&Number.isFinite(recommendation.latitude)
+    &&recommendation.latitude>=-90
+    &&recommendation.latitude<=90
+    &&typeof recommendation.longitude==='number'
+    &&Number.isFinite(recommendation.longitude)
+    &&recommendation.longitude>=-180
+    &&recommendation.longitude<=180;
+}
+
+function getExternalMapLinks(recommendation){
+  if(!hasVerifiedCoordinates(recommendation)) return null;
+  const coordinates=`${recommendation.latitude},${recommendation.longitude}`;
+  return {
+    google:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${recommendation.name} ${coordinates}`)}`,
+    apple:`https://maps.apple.com/?ll=${encodeURIComponent(coordinates)}&q=${encodeURIComponent(recommendation.name)}`,
+  };
+}
+
+function readNumber(value,fallback){
+  const number=Number(value);
+  return Number.isFinite(number)?number:fallback;
+}
+
+function readMapCenter(value){
+  const center=value?.split(',').map(Number);
+  return center?.length===2&&center.every(Number.isFinite)?center:[0,0];
+}
+
+const places=readRecommendations().map(recommendation=>({
   ...recommendation,
   card:cardsById.get(recommendation.id),
 })).filter(place=>place.card);
@@ -59,7 +101,12 @@ function selectPlace(place,{moveMap=true}={}){
   markers.forEach(({element},id)=>element.classList.toggle('selected',id===place.id));
   updateMapCard(place);
   if(moveMap&&map&&hasVerifiedCoordinates(place)){
-    map.easeTo({center:[place.longitude,place.latitude],zoom:15.6,duration:prefersReducedMotion?0:700,padding:{bottom:110}});
+    map.easeTo({
+      center:[place.longitude,place.latitude],
+      zoom:readNumber(mapContainer?.dataset.mapSelectionZoom,15.6),
+      duration:prefersReducedMotion?0:700,
+      padding:{bottom:110},
+    });
   }
 }
 
@@ -79,11 +126,8 @@ function applyFilter(filter){
     : `Showing ${visiblePlaces} recommendation${visiblePlaces===1?'':'s'} and ${visibleMapPlaces} verified map location${visibleMapPlaces===1?'':'s'} for ${activeLabel}.`;
 }
 
-function showMapSetup(eyebrow,heading,text){
+function showMapSetup(){
   if(!mapSetup||!mapCanvas) return;
-  mapSetup.querySelector('.eyebrow').textContent=eyebrow;
-  mapSetup.querySelector('h3').textContent=heading;
-  mapSetup.querySelector('p').textContent=text;
   mapSetup.hidden=false;
   mapCanvas.hidden=true;
 }
@@ -91,17 +135,17 @@ function showMapSetup(eyebrow,heading,text){
 async function initializeMap(){
   if(!mapContainer||!mapCanvas) return;
   if(verifiedPlaces.length===0){
-    showMapSetup('Map locations coming soon','Verified Leiden pins are on the way.','Recommendations will appear here after their exact coordinates are confirmed.');
+    showMapSetup();
     return;
   }
   maplibregl=await import('maplibre-gl');
   map=new maplibregl.Map({
     container:mapCanvas,
     style:mapContainer.dataset.mapStyle,
-    center:[4.497,52.1601],
-    zoom:14.1,
-    minZoom:11,
-    maxZoom:18,
+    center:readMapCenter(mapContainer.dataset.mapCenter),
+    zoom:readNumber(mapContainer.dataset.mapZoom,14.1),
+    minZoom:readNumber(mapContainer.dataset.mapMinZoom,11),
+    maxZoom:readNumber(mapContainer.dataset.mapMaxZoom,18),
     attributionControl:false,
   });
   map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
@@ -162,6 +206,20 @@ if(mapContainer){
 applyFilter('all');
 
 const modal=document.getElementById('storyModal');
-document.querySelectorAll('#storyGallery button').forEach(button=>button.addEventListener('click',()=>{modal.querySelector('img').src=button.dataset.img;modal.querySelector('h2').textContent=button.dataset.title;modal.querySelector('p').textContent=button.dataset.story;modal.hidden=false;document.body.style.overflow='hidden';}));
-modal.querySelector('.modal-close').addEventListener('click',()=>{modal.hidden=true;document.body.style.overflow=''});
-modal.addEventListener('click',event=>{if(event.target===modal){modal.hidden=true;document.body.style.overflow='';}});
+document.querySelectorAll('#storyGallery button').forEach(button=>button.addEventListener('click',()=>{
+  modal.querySelector('img').src=button.dataset.img;
+  modal.querySelector('h2').textContent=button.dataset.title;
+  modal.querySelector('p').textContent=button.dataset.story;
+  modal.hidden=false;
+  document.body.style.overflow='hidden';
+}));
+modal?.querySelector('.modal-close')?.addEventListener('click',()=>{
+  modal.hidden=true;
+  document.body.style.overflow='';
+});
+modal?.addEventListener('click',event=>{
+  if(event.target===modal){
+    modal.hidden=true;
+    document.body.style.overflow='';
+  }
+});

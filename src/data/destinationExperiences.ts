@@ -51,6 +51,7 @@ export interface DestinationExperience {
     style: string;
     center: [longitude: number, latitude: number];
     zoom: number;
+    selectionZoom: number;
     minZoom: number;
     maxZoom: number;
     setupEyebrow: string;
@@ -112,6 +113,7 @@ export const destinationExperiences: Record<string, DestinationExperience> = {
       style: 'https://tiles.openfreemap.org/styles/positron',
       center: [4.497, 52.1601],
       zoom: 14.1,
+      selectionZoom: 15.6,
       minZoom: 11,
       maxZoom: 18,
       setupEyebrow: 'Map locations coming soon',
